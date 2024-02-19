@@ -3,6 +3,7 @@ from datetime import datetime
 import io
 import boto3
 import os
+from fastapi.exceptions import FastAPIError
 from psycopg2 import pool
 import magic
 from dotenv import load_dotenv
@@ -42,6 +43,12 @@ class UserCreation(BaseModel):
     password: str
     photo: str
 
+class User(BaseModel):
+    id: int
+    username:str
+    name:str
+    profile_picture_url:str
+
 class Photo(BaseModel):
     photo_name: str
     photo_album: int
@@ -50,6 +57,9 @@ class Photo(BaseModel):
 class Album(BaseModel):
     album_name: str
     album_id: int
+
+class AlbumList(BaseModel):
+    albums:list[Album]
     
 
 app = FastAPI()
@@ -92,8 +102,8 @@ def signin(user:UserCreation):
 
     return {"message":"user created"}
 
-@app.get('/get_user/{username}')
-def get_user(username:str):
+@app.get('/get_user/{username}',status_code=200)
+def get_user(username:str) -> User:
     conn = conn_pool.getconn()
     if not conn:
         raise HTTPException(status_code=500,detail="can't connect to database")
@@ -103,21 +113,36 @@ def get_user(username:str):
         query_results = cur.fetchall()
         if len(query_results) == 0 :
             raise Exception("Could not find user in database")
-        usr = {
-            "id": query_results[0][0],
-            "username": query_results[0][1],
-            "name": query_results[0][2],
-        }
-        cur.execute("SELECT link FROM photo JOIN album ON album.id_album = photo.id_album WHERE album.id_user = %s AND album.isProfilePictureAlbum = 1::bit(1) AND photo.isProfilePicture = 1::bit(1);",[usr["id"]])
-        usr["profile-picture"] = cur.fetchall()[0][0]
+        usr = User(
+            id = int(query_results[0][0]),
+            username = str(query_results[0][1]),
+            name= str(query_results[0][2]),
+            profile_picture_url=""
+        )
+        cur.execute("SELECT link FROM photo JOIN album ON album.id_album = photo.id_album WHERE album.id_user = %s AND album.isProfilePictureAlbum = 1::bit(1) AND photo.isProfilePicture = 1::bit(1);",[usr.id])
+        usr.profile_picture= str(cur.fetchall()[0][0])
         conn_pool.putconn(conn)
-        return {"user":usr}
+        return usr
     except Exception as e:
         raise HTTPException(status_code=500,detail=e.__str__())
 
-@app.get('/get_album_list/{user_id}')
-def get_album_list(user_id:int):
-    pass
+@app.get('/get_album_list/{username}')
+def get_album_list(username:str)->AlbumList:
+    conn = conn_pool.getconn()
+    if not conn:
+        raise HTTPException(status_code=500,detail="can't connect to database")
+    try:
+        cur = conn.cursor()
+        cur.execute("SELECT album.id_album,album.name FROM album JOIN userr ON userr.id_user = album.id_user WHERE userr.username = %s;",[username])
+        query_results = cur.fetchall()
+        if len(query_results) == 0 :
+            raise Exception("Could not find user in database")
+        album_list = AlbumList(albums=[])
+        for album in query_results:
+            album_list.albums.append(Album(album_id=int(album[0]),album_name=str(album[1])))
+        return album_list
+    except Exception as e:
+        raise HTTPException(status_code=500,detail=e.__str__())
 
 @app.get('/get_albums/{user_id}')
 def get_albums(user_id:int):
