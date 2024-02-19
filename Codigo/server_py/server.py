@@ -3,7 +3,7 @@ from datetime import datetime
 import io
 import boto3
 import os
-from fastapi.exceptions import FastAPIError
+from fastapi.responses import JSONResponse
 from psycopg2 import pool
 import magic
 from dotenv import load_dotenv
@@ -41,7 +41,7 @@ class UserCreation(BaseModel):
     username: str
     name: str
     password: str
-    photo: str
+    photo_base64: str
 
 class User(BaseModel):
     id: int
@@ -52,7 +52,12 @@ class User(BaseModel):
 class Photo(BaseModel):
     photo_id: int
     photo_name: str
-    photo_link: str
+    photo_url: str
+
+class PhotoUpload(BaseModel):
+    photo_name: str
+    photo_base64: str
+    album_id: int
 
 class Album(BaseModel):
     album_name: str
@@ -64,11 +69,14 @@ class AlbumList(BaseModel):
 class AlbumPhotos(BaseModel):
     album_id:int
     photos:list[Photo]
+
+class Message(BaseModel):
+    message: str
     
 
 app = FastAPI()
 
-@app.post('/signin', status_code=201)
+@app.post('/signin', status_code=201,responses={201: {"model": Message}})
 def signin(user:UserCreation):
     conn = conn_pool.getconn()
     if not conn:
@@ -86,7 +94,7 @@ def signin(user:UserCreation):
         cur.execute("SELECT id_album FROM album WHERE id_user= %s;",[id])
         query_results = cur.fetchall()
         album_id = query_results[0][0]
-        f = base64.b64decode(user.photo)
+        f = base64.b64decode(user.photo_base64)
         mt = magic.from_buffer(f,mime=True)
         bucket_location = s3_client.get_bucket_location(Bucket=bucket)
         key_name = datetime.now().strftime('%Y_%m_%d_%H-%M-%S.%f')
@@ -104,7 +112,7 @@ def signin(user:UserCreation):
     conn.commit()
     conn_pool.putconn(conn)
 
-    return {"message":"user created"}
+    return JSONResponse(status_code=201, content={"message": "user created"})
 
 @app.get('/get_user/{username}',status_code=200)
 def get_user(username:str) -> User:
@@ -162,15 +170,36 @@ def get_albumPhotos(id_album:int) -> AlbumPhotos:
             photo_list.photos.append(Photo(
                 photo_id=int(photo[0]),
                 photo_name=str(photo[1]),
-                photo_link=str(photo[2])
+                photo_url=str(photo[2])
             ))
         return photo_list
     except Exception as e:
         raise HTTPException(status_code=500,detail=e.__str__())
 
-@app.post('/upload_photo')
-def upload_photo():
-    return {}
+@app.post('/upload_photo',status_code=201,responses={201: {"model": Message}})
+def upload_photo(photo:PhotoUpload):
+    conn = conn_pool.getconn()
+    if not conn:
+        raise HTTPException(status_code=500,detail="can't connect to database")
+    try:
+        cur = conn.cursor()
+        f = base64.b64decode(photo.photo_base64)
+        mt = magic.from_buffer(f,mime=True)
+        bucket_location = s3_client.get_bucket_location(Bucket=bucket)
+        key_name = datetime.now().strftime('%Y_%m_%d_%H-%M-%S.%f')
+        s3_client.upload_fileobj(io.BytesIO(f),bucket,key_name, ExtraArgs={'ContentType':mt});
+        object_url = "https://s3-{0}.amazonaws.com/{1}/{2}".format(
+            bucket_location['LocationConstraint'],
+            bucket,
+            key_name
+        )
+        cur.execute("INSERT INTO photo VALUES (DEFAULT,%s,%s,0::bit(1),%s)",[photo.photo_name,object_url,photo.album_id])
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=500,detail=e.__str__())
+    conn.commit()
+    conn_pool.putconn(conn)
+    return JSONResponse(status_code=201, content={"message": "photo created"})
 
 @app.post('/create_album')
 def create_album():
