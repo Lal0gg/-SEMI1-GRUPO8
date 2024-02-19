@@ -3,6 +3,7 @@ CREATE TABLE album
   id_album SERIAL NOT NULL,
   name     TEXT NOT NULL,
   id_user  INTEGER NOT NULL,
+  isProfilePictureAlbum BIT NOT NULL,
   PRIMARY KEY (id_album)
 );
 
@@ -33,4 +34,5 @@ ALTER TABLE album
 ALTER TABLE photo
   ADD CONSTRAINT FK_album_TO_photo
     FOREIGN KEY (id_album)
-    REFERENCES album (id_album);
+    REFERENCES album (id_album) 
+    ON DELETE CASCADE;
