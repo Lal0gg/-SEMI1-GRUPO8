@@ -58,7 +58,7 @@ app = FastAPI()
 def signin(user:UserCreation):
     conn = conn_pool.getconn()
     if not conn:
-        return {"error":"can't connect to database"} 
+        raise HTTPException(status_code=500,detail="can't connect to database")
     try:
         cur = conn.cursor()
         cur.execute("INSERT INTO userr VALUES (DEFAULT,%s, %s, %s);",[user.username,user.name,user.password])
@@ -66,7 +66,7 @@ def signin(user:UserCreation):
         cur.execute("SELECT id_user FROM userr WHERE username = %s;",[user.username])
         query_results = cur.fetchall()
         id = query_results[0][0]
-        cur.execute("INSERT INTO album VALUES (DEFAULT, %s, %s);",["Fotos de Perfil",id])
+        cur.execute("INSERT INTO album VALUES (DEFAULT, %s, %s,1::bit(1));",["Fotos de Perfil",id])
 
         
         cur.execute("SELECT id_album FROM album WHERE id_user= %s;",[id])
@@ -82,7 +82,7 @@ def signin(user:UserCreation):
             bucket,
             key_name
         )
-        cur.execute("INSERT INTO photo VALUES (DEFAULT,%s,%s,%s::bit(1),%s)",[key_name,object_url,1,album_id])
+        cur.execute("INSERT INTO photo VALUES (DEFAULT,%s,%s,1::bit(1),%s)",[key_name,object_url,album_id])
         print(object_url)
     except Exception as e:
         conn.rollback()
@@ -92,9 +92,28 @@ def signin(user:UserCreation):
 
     return {"message":"user created"}
 
-@app.get('/get_user/{user_id}')
-def get_user(user_id:int):
-    pass
+@app.get('/get_user/{username}')
+def get_user(username:str):
+    conn = conn_pool.getconn()
+    if not conn:
+        raise HTTPException(status_code=500,detail="can't connect to database")
+    try:
+        cur = conn.cursor()
+        cur.execute("SELECT id_user,username,name FROM userr WHERE username = %s;",[username])
+        query_results = cur.fetchall()
+        if len(query_results) == 0 :
+            raise Exception("Could not find user in database")
+        usr = {
+            "id": query_results[0][0],
+            "username": query_results[0][1],
+            "name": query_results[0][2],
+        }
+        cur.execute("SELECT link FROM photo JOIN album ON album.id_album = photo.id_album WHERE album.id_user = %s AND album.isProfilePictureAlbum = 1::bit(1) AND photo.isProfilePicture = 1::bit(1);",[usr["id"]])
+        usr["profile-picture"] = cur.fetchall()[0][0]
+        conn_pool.putconn(conn)
+        return {"user":usr}
+    except Exception as e:
+        raise HTTPException(status_code=500,detail=e.__str__())
 
 @app.get('/get_album_list/{user_id}')
 def get_album_list(user_id:int):
