@@ -50,9 +50,9 @@ class User(BaseModel):
     profile_picture_url:str
 
 class Photo(BaseModel):
+    photo_id: int
     photo_name: str
-    photo_album: int
-    user_id: int
+    photo_link: str
 
 class Album(BaseModel):
     album_name: str
@@ -60,6 +60,10 @@ class Album(BaseModel):
 
 class AlbumList(BaseModel):
     albums:list[Album]
+
+class AlbumPhotos(BaseModel):
+    album_id:int
+    photos:list[Photo]
     
 
 app = FastAPI()
@@ -126,7 +130,7 @@ def get_user(username:str) -> User:
     except Exception as e:
         raise HTTPException(status_code=500,detail=e.__str__())
 
-@app.get('/get_album_list/{username}')
+@app.get('/get_album_list/{username}', status_code=200)
 def get_album_list(username:str)->AlbumList:
     conn = conn_pool.getconn()
     if not conn:
@@ -144,9 +148,25 @@ def get_album_list(username:str)->AlbumList:
     except Exception as e:
         raise HTTPException(status_code=500,detail=e.__str__())
 
-@app.get('/get_albums/{user_id}')
-def get_albums(user_id:int):
-    pass
+@app.get('/get_albumPhotos/{id_album}',status_code=200)
+def get_albumPhotos(id_album:int) -> AlbumPhotos:
+    conn = conn_pool.getconn()
+    if not conn:
+        raise HTTPException(status_code=500,detail="can't connect to database")
+    try:
+        cur = conn.cursor()
+        cur.execute("SELECT id_photo,name,link FROM photo WHERE id_album = %s;",[id_album])
+        query_results = cur.fetchall()
+        photo_list = AlbumPhotos(album_id=id_album,photos=[])
+        for photo in query_results:
+            photo_list.photos.append(Photo(
+                photo_id=int(photo[0]),
+                photo_name=str(photo[1]),
+                photo_link=str(photo[2])
+            ))
+        return photo_list
+    except Exception as e:
+        raise HTTPException(status_code=500,detail=e.__str__())
 
 @app.post('/upload_photo')
 def upload_photo():
