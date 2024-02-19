@@ -70,6 +70,10 @@ class AlbumPhotos(BaseModel):
     album_id:int
     photos:list[Photo]
 
+class AlbumCreation(BaseModel):
+    album_name:str
+    user_id:int
+
 class Message(BaseModel):
     message: str
     
@@ -132,7 +136,7 @@ def get_user(username:str) -> User:
             profile_picture_url=""
         )
         cur.execute("SELECT link FROM photo JOIN album ON album.id_album = photo.id_album WHERE album.id_user = %s AND album.isProfilePictureAlbum = 1::bit(1) AND photo.isProfilePicture = 1::bit(1);",[usr.id])
-        usr.profile_picture= str(cur.fetchall()[0][0])
+        usr.profile_picture_url= str(cur.fetchall()[0][0])
         conn_pool.putconn(conn)
         return usr
     except Exception as e:
@@ -201,9 +205,20 @@ def upload_photo(photo:PhotoUpload):
     conn_pool.putconn(conn)
     return JSONResponse(status_code=201, content={"message": "photo created"})
 
-@app.post('/create_album')
-def create_album():
-    return {}
+@app.post('/create_album', status_code=201,responses={201: {"model": Message}})
+def create_album(album:AlbumCreation):
+    conn = conn_pool.getconn()
+    if not conn:
+        raise HTTPException(status_code=500,detail="can't connect to database")
+    try:
+        cur = conn.cursor()
+        cur.execute("INSERT INTO album VALUES (DEFAULT,%s,%s,0::bit(1))",[album.album_name,album.user_id])
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=500,detail=e.__str__())
+    conn.commit()
+    conn_pool.putconn(conn)
+    return JSONResponse(status_code=201, content={"message": "album created"})
 
 @app.post('/delete_album')
 def delete_album():
