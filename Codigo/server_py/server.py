@@ -74,6 +74,9 @@ class AlbumCreation(BaseModel):
     album_name:str
     user_id:int
 
+class AlbumDeletion(BaseModel):
+    album_id:int
+
 class Message(BaseModel):
     message: str
     
@@ -220,9 +223,20 @@ def create_album(album:AlbumCreation):
     conn_pool.putconn(conn)
     return JSONResponse(status_code=201, content={"message": "album created"})
 
-@app.post('/delete_album')
-def delete_album():
-    return {}
+@app.post('/delete_album', status_code=200,responses={200: {"model": Message}})
+def delete_album(album:AlbumDeletion):
+    conn = conn_pool.getconn()
+    if not conn:
+        raise HTTPException(status_code=500,detail="can't connect to database")
+    try:
+        cur = conn.cursor()
+        cur.execute("DELETE FROM album WHERE id_album = %s",[album.album_id])
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=500,detail=e.__str__())
+    conn.commit()
+    conn_pool.putconn(conn)
+    return JSONResponse(status_code=201, content={"message": "album deleted"})
 
 @app.post('/edit_album')
 def edit_album():
