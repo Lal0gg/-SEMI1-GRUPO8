@@ -1,6 +1,7 @@
 import base64
 from datetime import datetime
 import io
+from typing import Optional
 import boto3
 import os
 from fastapi.responses import JSONResponse
@@ -49,6 +50,13 @@ class User(BaseModel):
     name:str
     profile_picture_url:str
 
+class UserUpdate(BaseModel):
+    password:str
+    user_id:int
+    new_username:Optional[str]= None
+    new_name:Optional[str]= None
+    new_photo_base64:Optional[str]= None
+
 class Photo(BaseModel):
     photo_id: int
     photo_name: str
@@ -77,9 +85,19 @@ class AlbumCreation(BaseModel):
 class AlbumDeletion(BaseModel):
     album_id:int
 
+class AlbumUpdate(BaseModel):
+    album_id:int
+    album_name:str
+
 class Message(BaseModel):
     message: str
+
+class Login(BaseModel):
+    username:str
+    password:str
     
+class LoginResponse(BaseModel):
+    correct:bool
 
 app = FastAPI()
 
@@ -163,8 +181,8 @@ def get_album_list(username:str)->AlbumList:
     except Exception as e:
         raise HTTPException(status_code=500,detail=e.__str__())
 
-@app.get('/get_albumPhotos/{id_album}',status_code=200)
-def get_albumPhotos(id_album:int) -> AlbumPhotos:
+@app.get('/get_album_photos/{id_album}',status_code=200)
+def get_album_photos(id_album:int) -> AlbumPhotos:
     conn = conn_pool.getconn()
     if not conn:
         raise HTTPException(status_code=500,detail="can't connect to database")
@@ -238,10 +256,68 @@ def delete_album(album:AlbumDeletion):
     conn_pool.putconn(conn)
     return JSONResponse(status_code=201, content={"message": "album deleted"})
 
-@app.post('/edit_album')
-def edit_album():
-    return {}
+@app.post('/edit_album', status_code=200,responses={200: {"model": Message}})
+def edit_album(album:AlbumUpdate):
+    conn = conn_pool.getconn()
+    if not conn:
+        raise HTTPException(status_code=500,detail="can't connect to database")
+    try:
+        cur = conn.cursor()
+        cur.execute("UPDATE album SET name = %s WHERE id_album = %s",[album.album_name, album.album_id])
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=500,detail=e.__str__())
+    conn.commit()
+    conn_pool.putconn(conn)
+    return JSONResponse(status_code=201, content={"message": "album updated"})
 
-@app.post('/update_profile')
-def update_profile():
-    pass
+@app.post('/update_profile', status_code=200,responses={200: {"model": Message}})
+def update_profile(user:UserUpdate):
+    conn = conn_pool.getconn()
+    if not conn:
+        raise HTTPException(status_code=500,detail="can't connect to database")
+    try:
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM userr WHERE id_user = %s AND password = %s",[user.user_id,user.password])
+        if len(cur.fetchall()) == 0:
+            raise Exception("Incorrect Password")
+        if user.new_username and user.new_username != "":
+            cur.execute("UPDATE userr SET username = %s WHERE id_user = %s",[user.new_username,user.user_id])
+        if user.new_name and user.new_name != "":
+            cur.execute("UPDATE userr SET name = %s WHERE id_user = %s",[user.new_name,user.user_id])
+        if user.new_photo_base64 and user.new_photo_base64 != "":
+            cur.execute("SELECT id_album FROM album WHERE id_user = %s AND isProfilePictureAlbum = 1::bit(1)",[user.user_id])
+            album_id = cur.fetchone()[0]
+            cur.execute("UPDATE photo SET isProfilePicture = 0::bit(1) WHERE isProfilePicture = 1::bit(1) AND id_album = %s", [album_id])
+            f = base64.b64decode(user.new_photo_base64)
+            mt = magic.from_buffer(f,mime=True)
+            bucket_location = s3_client.get_bucket_location(Bucket=bucket)
+            key_name = datetime.now().strftime('%Y_%m_%d_%H-%M-%S.%f')
+            s3_client.upload_fileobj(io.BytesIO(f),bucket,key_name, ExtraArgs={'ContentType':mt});
+            object_url = "https://s3-{0}.amazonaws.com/{1}/{2}".format(
+                bucket_location['LocationConstraint'],
+                bucket,
+                key_name
+            )
+            cur.execute("INSERT INTO photo VALUES (DEFAULT,%s,%s,1::bit(1),%s)",[key_name,object_url,album_id])
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=500,detail=e.__str__())
+    conn.commit()
+    conn_pool.putconn(conn)
+    return JSONResponse(status_code=201, content={"message": "user updated"})
+
+@app.post('/login', status_code=200)
+def login(creds:Login) -> LoginResponse:
+    conn = conn_pool.getconn()
+    if not conn:
+        raise HTTPException(status_code=500,detail="can't connect to database")
+    try:
+        cur = conn.cursor()
+        cur.execute("SELECT 0 FROM userr WHERE username = %s AND password = %s",[creds.username,creds.password])
+        if len(cur.fetchall()) == 0:
+            return LoginResponse(correct=False)
+        return LoginResponse(correct=True)
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=500,detail=e.__str__())
