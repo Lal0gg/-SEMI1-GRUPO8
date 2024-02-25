@@ -71,6 +71,18 @@ const AlbumCreation = {
     }
 }
 
+const AlbumDeletion = {
+    schema: {
+        body: {
+            type: 'object',
+            required: ['album_id'],
+            properties:{
+                album_id: { type: 'integer' },
+            },
+        }
+    }
+}
+
 fastify.post('/signin',UserCreation, async(request,reply) => {
 
     const client = await pool.connect();
@@ -256,7 +268,7 @@ fastify.post('/upload_photo', PhotoUpload , async(request,reply) => {
         object_url = `https://s3-${s3.config.region}.amazonaws.com/${bucket_name}/${key_name}`
 
 
-        text = 'INSERT INTO photo VALUES (DEFAULT,$1,$2,1::bit(1),$3)';
+        text = 'INSERT INTO photo VALUES (DEFAULT,$1,$2,0::bit(1),$3)';
         values = [photo.photo_name,object_url,photo.album_id];
         await client.query(text,values);
 
@@ -312,6 +324,29 @@ fastify.post('/create_album', AlbumCreation , async(request,reply) => {
 
 });
 
+fastify.post('/delete_album', AlbumDeletion , async(request,reply) => {
+    const client = await pool.connect();
+    try{
+        await client.query('BEGIN');
+        const album = request.body;
+        await client.query('DELETE FROM album WHERE id_album = $1',[album.album_id]);
+        await client.query('COMMIT');
+        reply
+            .code(200)
+            .header('Content-Type', 'application/json; charset=utf-8')
+            .send({message:'album deleted'});
+    }catch (err){
+        await client.query('ROLLBACK');
+        reply
+            .code(500)
+            .header('Content-Type', 'application/json; charset=utf-8')
+            .send({detail:err});
+        console.error('Database connection failed due to ' + err);
+
+    }finally{
+        client.release();
+    }
+});
 
 fastify.listen({ port: 8000 }, function (err, address) {
   if (err) {
