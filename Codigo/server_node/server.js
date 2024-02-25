@@ -1,8 +1,8 @@
 const fastify = require('fastify')({
   logger: true
 })
-var AWS = require("aws-sdk");
-const {Pool} = require("pg");
+var AWS = require('aws-sdk');
+const {Pool} = require('pg');
 const strftime = require('strftime')
 
 require('dotenv').config();
@@ -51,31 +51,31 @@ fastify.post('/signin',UserCreation, async(request,reply) => {
     try{  
         await client.query('BEGIN')
 
-        var text = "INSERT INTO userr VALUES (DEFAULT,$1, $2, $3)";
+        var text = 'INSERT INTO userr VALUES (DEFAULT,$1, $2, $3)';
         var values = [user.username,user.name,user.password];
         await client.query(text,values);
 
-        var result = await client.query("SELECT id_user FROM userr WHERE username = $1;",[user.username])
+        var result = await client.query('SELECT id_user FROM userr WHERE username = $1;',[user.username])
         id = result.rows[0].id_user;
 
-        text = "INSERT INTO album VALUES (DEFAULT, $1, $2,1::bit(1));";
-        values = ["Fotos de Perfil",id];
+        text = 'INSERT INTO album VALUES (DEFAULT, $1, $2,1::bit(1));';
+        values = ['Fotos de Perfil',id];
         await client.query(text,values);
 
-        var result = await client.query("SELECT id_album FROM album WHERE id_user = $1;",[id])
+        var result = await client.query('SELECT id_album FROM album WHERE id_user = $1;',[id])
         album_id = result.rows[0].id_album;
 
         f = base64ToFile(user.photo_base64);
         mt = f.type
-        const key_name = strftime("%Y_%m_%d_%H-%M-%S.%L");
+        const key_name = strftime('%Y_%m_%d_%H-%M-%S.%L');
         console.log(AWS.config.region)
 
-        var s3 = new AWS.S3({ apiVersion: "2006-03-01" });
+        var s3 = new AWS.S3({ apiVersion: '2006-03-01' });
 
         const uploadParams = {
             Bucket : bucket_name,
             Key: key_name,
-            Body: await f.arrayBuffer().then((arrayBuffer) => Buffer.from(arrayBuffer, "binary")),
+            Body: await f.arrayBuffer().then((arrayBuffer) => Buffer.from(arrayBuffer, 'binary')),
             ContentType: f.type,
         }
 
@@ -83,23 +83,23 @@ fastify.post('/signin',UserCreation, async(request,reply) => {
         object_url = `https://s3-${s3.config.region}.amazonaws.com/${bucket_name}/${key_name}`
 
 
-        text = "INSERT INTO photo VALUES (DEFAULT,$1,$2,1::bit(1),$3)";
+        text = 'INSERT INTO photo VALUES (DEFAULT,$1,$2,1::bit(1),$3)';
         values = [key_name,object_url,album_id];
         await client.query(text,values);
 
         var object_url;
         s3.upload(uploadParams, function(err,data){
             if (err) {
-                console.log("Error", err);
+                console.log('Error', err);
             } if (data) {
-                console.log("Upload Success", data.Location);
+                console.log('Upload Success', data.Location);
             }
         });
         await client.query('COMMIT')
         reply
             .code(201)
             .header('Content-Type', 'application/json; charset=utf-8')
-            .send({message:"user created"})
+            .send({message:'user created'})
             
     }catch (err){
         await client.query('ROLLBACK')
@@ -107,11 +107,42 @@ fastify.post('/signin',UserCreation, async(request,reply) => {
             .code(500)
             .header('Content-Type', 'application/json; charset=utf-8')
             .send({detail:err})
-        console.error("Database connection failed due to " + err);
+        console.error('Database connection failed due to ' + err);
 
     }finally{
         client.release();
     }
+});
+
+fastify.get('/get_user/:username', async(request,reply) => {
+    const client = await pool.connect();
+    try{
+        const rows = await client.query('SELECT id_user,username,name FROM userr WHERE username = $1',[request.params.username]);
+       const user_info = rows.rows[0] 
+
+        const text = 'SELECT link FROM photo JOIN album ON album.id_album = photo.id_album WHERE album.id_user = $1 AND album.isProfilePictureAlbum = 1::bit(1) AND photo.isProfilePicture = 1::bit(1);'
+        profile_picture = await client.query(text,[user_info.id_user])
+        reply
+            .code(201)
+            .header('Content-Type', 'application/json; charset=utf-8')
+            .send({
+                id: user_info.id_user,
+                username: user_info.username,
+                name: user_info.name,
+                profile_picture_url: profile_picture.rows[0].link 
+            });
+
+    }catch (err){
+        reply
+            .code(500)
+            .header('Content-Type', 'application/json; charset=utf-8')
+            .send({detail:err})
+        console.error('Database connection failed due to ' + err);
+
+    }finally{
+        client.release();
+    }
+
 });
 
 fastify.listen({ port: 8000 }, function (err, address) {
