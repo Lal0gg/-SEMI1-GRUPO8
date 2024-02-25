@@ -113,6 +113,20 @@ const UserUpdate = {
     }
 }
 
+const Login = {
+    schema: {
+        body: {
+            type: 'object',
+            required: ['password','username'],
+            properties:{
+                password: { type: 'string' },
+                username: { type: 'string' },
+            },
+        }
+    }
+
+}
+
 fastify.post('/signin',UserCreation, async(request,reply) => {
 
     const client = await pool.connect();
@@ -457,6 +471,28 @@ fastify.post('/update_profile', UserUpdate , async(request,reply) => {
             .code(200)
             .header('Content-Type', 'application/json; charset=utf-8')
             .send({message:'user updated'});
+    }catch (err){
+        await client.query('ROLLBACK');
+        reply
+            .code(500)
+            .header('Content-Type', 'application/json; charset=utf-8')
+            .send({detail: err.message});
+        console.error('Database connection failed due to ' + err);
+
+    }finally{
+        client.release();
+    }
+});
+
+fastify.post('/login', Login , async(request,reply) => {
+    const client = await pool.connect();
+    try{
+        creds = request.body;
+        const rows = await client.query('SELECT 0 FROM userr WHERE username = $1 AND password = $2',[creds.username,creds.password]);
+        reply
+            .code(200)
+            .header('Content-Type', 'application/json; charset=utf-8')
+            .send({correct:rows.rowCount != 0});
     }catch (err){
         await client.query('ROLLBACK');
         reply
