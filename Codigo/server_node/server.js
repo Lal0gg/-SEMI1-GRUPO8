@@ -58,6 +58,19 @@ const PhotoUpload = {
     }
 }
 
+const AlbumCreation = {
+    schema: {
+        body: {
+            type: 'object',
+            required: ['album_name','user_id'],
+            properties:{
+                album_name: { type: 'string' },
+                user_id: { type: 'integer' },
+            },
+        }
+    }
+}
+
 fastify.post('/signin',UserCreation, async(request,reply) => {
 
     const client = await pool.connect();
@@ -273,6 +286,32 @@ fastify.post('/upload_photo', PhotoUpload , async(request,reply) => {
     }
 
 });
+
+fastify.post('/create_album', AlbumCreation , async(request,reply) => {
+    const client = await pool.connect();
+    try{
+        await client.query('BEGIN')
+        const album = request.body
+        client.query('INSERT INTO album VALUES (DEFAULT,$1,$2,0::bit(1))',[album.album_name,album.user_id])
+        await client.query('COMMIT')
+        reply
+            .code(201)
+            .header('Content-Type', 'application/json; charset=utf-8')
+            .send({message:'album created'})
+    }catch (err){
+        await client.query('ROLLBACK')
+        reply
+            .code(500)
+            .header('Content-Type', 'application/json; charset=utf-8')
+            .send({detail:err})
+        console.error('Database connection failed due to ' + err);
+
+    }finally{
+        client.release();
+    }
+
+});
+
 
 fastify.listen({ port: 8000 }, function (err, address) {
   if (err) {
