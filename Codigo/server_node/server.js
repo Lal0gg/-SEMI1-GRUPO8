@@ -96,6 +96,23 @@ const AlbumUpdate = {
     }
 }
 
+const UserUpdate = {
+    schema: {
+        body: {
+            type: 'object',
+            required: ['password','user_id'],
+            properties:{
+                password: { type: 'string' },
+                user_id: { type: 'integer' },
+                new_username: { type: 'string' },
+                new_name: { type: 'string'},
+                new_photo_base64: { type : 'string' }
+
+            },
+        }
+    }
+}
+
 fastify.post('/signin',UserCreation, async(request,reply) => {
 
     const client = await pool.connect();
@@ -157,7 +174,7 @@ fastify.post('/signin',UserCreation, async(request,reply) => {
         reply
             .code(500)
             .header('Content-Type', 'application/json; charset=utf-8')
-            .send({detail:err})
+            .send({detail: err})
         console.error('Database connection failed due to ' + err);
 
     }finally{
@@ -187,7 +204,7 @@ fastify.get('/get_user/:username', async(request,reply) => {
         reply
             .code(500)
             .header('Content-Type', 'application/json; charset=utf-8')
-            .send({detail:err})
+            .send({detail: err})
         console.error('Database connection failed due to ' + err);
 
     }finally{
@@ -218,7 +235,7 @@ fastify.get('/get_album_list/:username', async(request,reply) => {
         reply
             .code(500)
             .header('Content-Type', 'application/json; charset=utf-8')
-            .send({detail:err})
+            .send({detail: err})
         console.error('Database connection failed due to ' + err);
 
     }finally{
@@ -251,7 +268,7 @@ fastify.get('/get_album_photos/:id_album', async(request,reply) => {
         reply
             .code(500)
             .header('Content-Type', 'application/json; charset=utf-8')
-            .send({detail:err})
+            .send({detail: err})
         console.error('Database connection failed due to ' + err);
 
     }finally{
@@ -303,7 +320,7 @@ fastify.post('/upload_photo', PhotoUpload , async(request,reply) => {
         reply
             .code(500)
             .header('Content-Type', 'application/json; charset=utf-8')
-            .send({detail:err})
+            .send({detail: err})
         console.error('Database connection failed due to ' + err);
 
     }finally{
@@ -328,7 +345,7 @@ fastify.post('/create_album', AlbumCreation , async(request,reply) => {
         reply
             .code(500)
             .header('Content-Type', 'application/json; charset=utf-8')
-            .send({detail:err})
+            .send({detail: err})
         console.error('Database connection failed due to ' + err);
 
     }finally{
@@ -353,7 +370,7 @@ fastify.post('/delete_album', AlbumDeletion , async(request,reply) => {
         reply
             .code(500)
             .header('Content-Type', 'application/json; charset=utf-8')
-            .send({detail:err});
+            .send({detail: err});
         console.error('Database connection failed due to ' + err);
 
     }finally{
@@ -377,7 +394,75 @@ fastify.post('/edit_album', AlbumUpdate , async(request,reply) => {
         reply
             .code(500)
             .header('Content-Type', 'application/json; charset=utf-8')
-            .send({detail:err});
+            .send({detail: err});
+        console.error('Database connection failed due to ' + err);
+
+    }finally{
+        client.release();
+    }
+});
+
+fastify.post('/update_profile', UserUpdate , async(request,reply) => {
+    const client = await pool.connect();
+    try{
+        await client.query('BEGIN');
+        const user = request.body;
+        const log = await client.query('SELECT * FROM userr WHERE id_user = $1 AND password = $2',[user.user_id,user.password]);
+        if (log.rowCount === 0){
+            throw new Error("Incorrect password")
+        }
+        if (user.new_username && !(user.new_username === "" )){
+            await client.query('UPDATE userr SET username = $1 WHERE id_user = $2',[user.new_username,user.user_id])
+        }
+        if (user.new_name && !(user.new_name === "")){
+            await client.query('UPDATE userr SET name = $1 WHERE id_user = $2',[user.new_name,user.user_id])
+        }
+        if (user.new_photo_base64 && !(user.new_photo_base64 === "")){
+            var text = 'SELECT id_album FROM album WHERE id_user = $1 AND isProfilePictureAlbum = 1::bit(1)';
+            const rows = await client.query(text,[user.user_id])
+            const id_album = rows.rows[0].id_album;
+            text = 'UPDATE photo SET isProfilePicture=0::bit(1) WHERE isProfilePicture=1::bit(1) AND id_album = $1';
+            await client.query(text,[id_album]);
+            f = base64ToFile(user.new_photo_base64);
+            mt = f.type
+            const key_name = strftime('%Y_%m_%d_%H-%M-%S.%L');
+
+            var s3 = new AWS.S3({ apiVersion: '2006-03-01' });
+
+            const uploadParams = {
+                Bucket : bucket_name,
+                Key: key_name,
+                Body: await f.arrayBuffer().then((arrayBuffer) => Buffer.from(arrayBuffer, 'binary')),
+                ContentType: f.type,
+            }
+
+            object_url = `https://s3-${s3.config.region}.amazonaws.com/${bucket_name}/${key_name}`
+
+
+            text = 'INSERT INTO photo VALUES (DEFAULT,$1,$2,1::bit(1),$3)';
+            values = [key_name,object_url,id_album];
+            await client.query(text,values);
+
+            var object_url;
+            s3.upload(uploadParams, function(err,data){
+                if (err) {
+                    console.log('Error', err);
+                } if (data) {
+                    console.log('Upload Success', data.Location);
+                }
+            });
+        }
+        await client.query('COMMIT');
+        reply
+            .code(200)
+            .header('Content-Type', 'application/json; charset=utf-8')
+            .send({message:'user updated'});
+    }catch (err){
+        await client.query('ROLLBACK');
+        reply
+            .code(500)
+            .header('Content-Type', 'application/json; charset=utf-8')
+            .send({detail: err.message});
         console.error('Database connection failed due to ' + err);
 
     }finally{
