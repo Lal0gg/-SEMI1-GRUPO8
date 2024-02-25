@@ -68,7 +68,6 @@ fastify.post('/signin',UserCreation, async(request,reply) => {
         f = base64ToFile(user.photo_base64);
         mt = f.type
         const key_name = strftime('%Y_%m_%d_%H-%M-%S.%L');
-        console.log(AWS.config.region)
 
         var s3 = new AWS.S3({ apiVersion: '2006-03-01' });
 
@@ -132,6 +131,37 @@ fastify.get('/get_user/:username', async(request,reply) => {
                 profile_picture_url: profile_picture.rows[0].link 
             });
 
+    }catch (err){
+        reply
+            .code(500)
+            .header('Content-Type', 'application/json; charset=utf-8')
+            .send({detail:err})
+        console.error('Database connection failed due to ' + err);
+
+    }finally{
+        client.release();
+    }
+
+});
+
+fastify.get('/get_album_list/:username', async(request,reply) => {
+    const client = await pool.connect();
+    try{
+        text = "SELECT album.id_album,album.name FROM album JOIN userr ON userr.id_user = album.id_user WHERE userr.username = $1"
+        const rows = await client.query(text,[request.params.username])
+        var albums = []
+        rows.rows.forEach((element,i) => {
+            albums[i] = {
+                album_name: element.name,
+                album_id: element.id_album
+            }
+        });
+        reply
+            .code(201)
+            .header('Content-Type', 'application/json; charset=utf-8')
+            .send({
+                albums: albums
+            });
     }catch (err){
         reply
             .code(500)
