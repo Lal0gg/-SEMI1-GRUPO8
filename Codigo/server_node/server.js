@@ -83,6 +83,19 @@ const AlbumDeletion = {
     }
 }
 
+const AlbumUpdate = {
+    schema: {
+        body: {
+            type: 'object',
+            required: ['album_name','album_id'],
+            properties:{
+                album_name: { type: 'string' },
+                album_id: { type: 'integer' },
+            },
+        }
+    }
+}
+
 fastify.post('/signin',UserCreation, async(request,reply) => {
 
     const client = await pool.connect();
@@ -335,6 +348,30 @@ fastify.post('/delete_album', AlbumDeletion , async(request,reply) => {
             .code(200)
             .header('Content-Type', 'application/json; charset=utf-8')
             .send({message:'album deleted'});
+    }catch (err){
+        await client.query('ROLLBACK');
+        reply
+            .code(500)
+            .header('Content-Type', 'application/json; charset=utf-8')
+            .send({detail:err});
+        console.error('Database connection failed due to ' + err);
+
+    }finally{
+        client.release();
+    }
+});
+
+fastify.post('/edit_album', AlbumUpdate , async(request,reply) => {
+    const client = await pool.connect();
+    try{
+        await client.query('BEGIN');
+        const album = request.body;
+        await client.query('UPDATE album SET name = $1 WHERE id_album = $2',[album.album_name,album.album_id]);
+        await client.query('COMMIT');
+        reply
+            .code(200)
+            .header('Content-Type', 'application/json; charset=utf-8')
+            .send({message:'album updated'});
     }catch (err){
         await client.query('ROLLBACK');
         reply
