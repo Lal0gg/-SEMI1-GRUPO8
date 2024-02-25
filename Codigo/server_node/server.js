@@ -44,6 +44,20 @@ const UserCreation = {
     }
 };
 
+const PhotoUpload = {
+    schema: {
+        body: {
+            type: 'object',
+            required: ['photo_name','photo_base64','album_id'],
+            properties:{
+                photo_name: { type: 'string' },
+                photo_base64: { type: 'string' },
+                album_id: { type: 'integer' },
+            },
+        }
+    }
+}
+
 fastify.post('/signin',UserCreation, async(request,reply) => {
 
     const client = await pool.connect();
@@ -192,10 +206,62 @@ fastify.get('/get_album_photos/:id_album', async(request,reply) => {
             .code(201)
             .header('Content-Type', 'application/json; charset=utf-8')
             .send({
-                album_id : request.params.id_album,
+                album_id : Number(request.params.id_album),
                 photos: photos
             });
     }catch (err){
+        reply
+            .code(500)
+            .header('Content-Type', 'application/json; charset=utf-8')
+            .send({detail:err})
+        console.error('Database connection failed due to ' + err);
+
+    }finally{
+        client.release();
+    }
+
+});
+
+fastify.post('/upload_photo', PhotoUpload , async(request,reply) => {
+    const client = await pool.connect();
+    try{
+        await client.query('BEGIN')
+        const photo = request.body
+        f = base64ToFile(photo.photo_base64);
+        mt = f.type
+        const key_name = strftime('%Y_%m_%d_%H-%M-%S.%L');
+
+        var s3 = new AWS.S3({ apiVersion: '2006-03-01' });
+
+        const uploadParams = {
+            Bucket : bucket_name,
+            Key: key_name,
+            Body: await f.arrayBuffer().then((arrayBuffer) => Buffer.from(arrayBuffer, 'binary')),
+            ContentType: f.type,
+        }
+
+        object_url = `https://s3-${s3.config.region}.amazonaws.com/${bucket_name}/${key_name}`
+
+
+        text = 'INSERT INTO photo VALUES (DEFAULT,$1,$2,1::bit(1),$3)';
+        values = [photo.photo_name,object_url,photo.album_id];
+        await client.query(text,values);
+
+        var object_url;
+        s3.upload(uploadParams, function(err,data){
+            if (err) {
+                console.log('Error', err);
+            } if (data) {
+                console.log('Upload Success', data.Location);
+            }
+        });
+        await client.query('COMMIT')
+        reply
+            .code(201)
+            .header('Content-Type', 'application/json; charset=utf-8')
+            .send({message:'photo created'})
+    }catch (err){
+        await client.query('ROLLBACK')
         reply
             .code(500)
             .header('Content-Type', 'application/json; charset=utf-8')
