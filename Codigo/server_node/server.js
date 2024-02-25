@@ -147,7 +147,7 @@ fastify.get('/get_user/:username', async(request,reply) => {
 fastify.get('/get_album_list/:username', async(request,reply) => {
     const client = await pool.connect();
     try{
-        text = "SELECT album.id_album,album.name FROM album JOIN userr ON userr.id_user = album.id_user WHERE userr.username = $1"
+        text = 'SELECT album.id_album,album.name FROM album JOIN userr ON userr.id_user = album.id_user WHERE userr.username = $1'
         const rows = await client.query(text,[request.params.username])
         var albums = []
         rows.rows.forEach((element,i) => {
@@ -161,6 +161,39 @@ fastify.get('/get_album_list/:username', async(request,reply) => {
             .header('Content-Type', 'application/json; charset=utf-8')
             .send({
                 albums: albums
+            });
+    }catch (err){
+        reply
+            .code(500)
+            .header('Content-Type', 'application/json; charset=utf-8')
+            .send({detail:err})
+        console.error('Database connection failed due to ' + err);
+
+    }finally{
+        client.release();
+    }
+
+});
+
+fastify.get('/get_album_photos/:id_album', async(request,reply) => {
+    const client = await pool.connect();
+    try{
+        text = 'SELECT id_photo,name,link FROM photo WHERE id_album = $1;'
+        const rows = await client.query(text,[request.params.id_album])
+        var photos = []
+        rows.rows.forEach((element,i) => {
+            photos[i] = {
+                photo_id : element.id_photo,
+                photo_name : element.name,
+                photo_url : element.link
+            }
+        });
+        reply
+            .code(201)
+            .header('Content-Type', 'application/json; charset=utf-8')
+            .send({
+                album_id : request.params.id_album,
+                photos: photos
             });
     }catch (err){
         reply
