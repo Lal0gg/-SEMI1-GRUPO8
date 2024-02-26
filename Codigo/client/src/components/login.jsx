@@ -4,7 +4,7 @@ import Fotito from '../images/icon4.png'
 
 export default function Login() {
   return (
-    <div className='flex w-full h-screen'>
+    <div className='flex w-full h-screen scrollbar-hide'>
       
         <div className='w-full flex items-center  justify-center lg:w-1/2'>
           <Form />
