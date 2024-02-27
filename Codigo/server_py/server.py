@@ -5,6 +5,7 @@ from typing import Optional
 import boto3
 import os
 from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 from psycopg2 import pool
 import magic
 from dotenv import load_dotenv
@@ -104,6 +105,18 @@ class LoginResponse(BaseModel):
     correct:bool
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins = ["*"],
+    allow_credentials = True,
+    allow_methods = ["*"],
+    allow_headers = ["*"]
+)
+
+@app.get('/info',status_code=200,responses={200: {"model": Message}})
+def info():
+    return JSONResponse(status_code=200, content={"message":"server python"})
 
 @app.post('/signin', status_code=201,responses={201: {"model": Message}})
 def signin(user:UserCreation):
