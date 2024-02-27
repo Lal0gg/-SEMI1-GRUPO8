@@ -10,6 +10,7 @@ import magic
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
+from hashlib import md5
 
 load_dotenv()
 endpoint = os.getenv('ENDPOINT')
@@ -17,22 +18,25 @@ db_port = os.getenv("DB_PORT")
 db_user = os.getenv('DB_USER')
 db_pass = os.getenv('DB_PASS')
 db_name = os.getenv('DB_NAME')
-region = os.getenv('REGION')
+rds_region = os.getenv('RDS_REGION')
+s3_region = os.getenv('S3_REGION')
 bucket = os.getenv('BUCKET_NAME')
-access_key = os.getenv('ACCESS_KEY')
-secret_key = os.getenv('SECRET_KEY')
+db_access_key = os.getenv('DB_ACCESS_KEY')
+db_secret_key = os.getenv('DB_SECRET_KEY')
+s3_access_key = os.getenv('S3_ACCESS_KEY')
+s3_secret_key = os.getenv('S3_SECRET_KEY')
 
 db_client = boto3.client(
     service_name = 'rds',
-    region_name = region,
-    aws_access_key_id = access_key,
-    aws_secret_access_key = secret_key,
+    region_name = rds_region,
+    aws_access_key_id = db_access_key,
+    aws_secret_access_key = db_secret_key,
 )
 
 s3_client = boto3.client(
     service_name = 's3',
-    aws_access_key_id = access_key,
-    aws_secret_access_key = secret_key,
+    aws_access_key_id = s3_access_key,
+    aws_secret_access_key = s3_secret_key,
 )
 
 conn_pool = pool.SimpleConnectionPool(1,20, host=endpoint, port=db_port, database=db_name, user=db_user, password=db_pass,sslrootcert="SSLCERTIFICATE")
@@ -108,7 +112,8 @@ def signin(user:UserCreation):
         raise HTTPException(status_code=500,detail="can't connect to database")
     try:
         cur = conn.cursor()
-        cur.execute("INSERT INTO userr VALUES (DEFAULT,%s, %s, %s);",[user.username,user.name,user.password])
+        md5_pass = md5((user.password).encode('utf-8')).hexdigest()
+        cur.execute("INSERT INTO userr VALUES (DEFAULT,%s, %s, %s);",[user.username,user.name,md5_pass])
 
         cur.execute("SELECT id_user FROM userr WHERE username = %s;",[user.username])
         query_results = cur.fetchall()
@@ -122,7 +127,7 @@ def signin(user:UserCreation):
         f = base64.b64decode(user.photo_base64)
         mt = magic.from_buffer(f,mime=True)
         bucket_location = s3_client.get_bucket_location(Bucket=bucket)
-        key_name = datetime.now().strftime('%Y_%m_%d_%H-%M-%S.%f')
+        key_name = "Fotos_Perfil/" + datetime.now().strftime('%Y_%m_%d_%H-%M-%S.%f')
         s3_client.upload_fileobj(io.BytesIO(f),bucket,key_name, ExtraArgs={'ContentType':mt});
         object_url = "https://s3-{0}.amazonaws.com/{1}/{2}".format(
             bucket_location['LocationConstraint'],
@@ -211,7 +216,7 @@ def upload_photo(photo:PhotoUpload):
         f = base64.b64decode(photo.photo_base64)
         mt = magic.from_buffer(f,mime=True)
         bucket_location = s3_client.get_bucket_location(Bucket=bucket)
-        key_name = datetime.now().strftime('%Y_%m_%d_%H-%M-%S.%f')
+        key_name = "Fotos_Publicadas/" + datetime.now().strftime('%Y_%m_%d_%H-%M-%S.%f')
         s3_client.upload_fileobj(io.BytesIO(f),bucket,key_name, ExtraArgs={'ContentType':mt});
         object_url = "https://s3-{0}.amazonaws.com/{1}/{2}".format(
             bucket_location['LocationConstraint'],
@@ -278,7 +283,9 @@ def update_profile(user:UserUpdate):
         raise HTTPException(status_code=500,detail="can't connect to database")
     try:
         cur = conn.cursor()
-        cur.execute("SELECT * FROM userr WHERE id_user = %s AND password = %s",[user.user_id,user.password])
+
+        md5_pass = md5((user.password).encode('utf-8')).hexdigest()
+        cur.execute("SELECT * FROM userr WHERE id_user = %s AND password = %s",[user.user_id,md5_pass])
         if len(cur.fetchall()) == 0:
             raise Exception("Incorrect Password")
         if user.new_username and user.new_username != "":
@@ -292,7 +299,7 @@ def update_profile(user:UserUpdate):
             f = base64.b64decode(user.new_photo_base64)
             mt = magic.from_buffer(f,mime=True)
             bucket_location = s3_client.get_bucket_location(Bucket=bucket)
-            key_name = datetime.now().strftime('%Y_%m_%d_%H-%M-%S.%f')
+            key_name = "Fotos_Perfil/" + datetime.now().strftime('%Y_%m_%d_%H-%M-%S.%f')
             s3_client.upload_fileobj(io.BytesIO(f),bucket,key_name, ExtraArgs={'ContentType':mt});
             object_url = "https://s3-{0}.amazonaws.com/{1}/{2}".format(
                 bucket_location['LocationConstraint'],
@@ -314,7 +321,8 @@ def login(creds:Login) -> LoginResponse:
         raise HTTPException(status_code=500,detail="can't connect to database")
     try:
         cur = conn.cursor()
-        cur.execute("SELECT 0 FROM userr WHERE username = %s AND password = %s",[creds.username,creds.password])
+        md5_pass = md5((creds.password).encode('utf-8')).hexdigest()
+        cur.execute("SELECT 0 FROM userr WHERE username = %s AND password = %s",[creds.username,md5_pass])
         if len(cur.fetchall()) == 0:
             return LoginResponse(correct=False)
         return LoginResponse(correct=True)
