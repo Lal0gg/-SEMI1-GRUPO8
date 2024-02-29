@@ -5,9 +5,11 @@ var AWS = require('aws-sdk');
 const {Pool} = require('pg');
 const strftime = require('strftime')
 
-require('dotenv').config();
+const {createHash} = require('node:crypto');
 
-AWS.config.loadFromPath('./config.json');
+const cors = require('@fastify/cors');
+
+require('dotenv').config();
 
 endpoint = process.env.ENDPOINT;
 db_port = process.env.DB_PORT;
@@ -16,17 +18,24 @@ db_pass = process.env.DB_PASS;
 db_name = process.env.DB_NAME;
 bucket_name = process.env.BUCKET_NAME;
 
+const s3 = new AWS.S3({
+    apiVersion: '2006-03-01',
+    credentials: new AWS.Credentials({
+        accessKeyId: process.env.S3_ACCESS_KEY,
+        secretAccessKey: process.env.S3_SECRET_KEY
+    }),
+    region: process.env.S3_REGION
+})
+
 const pool = new Pool({
     host: endpoint,
     database: db_name,
     user: db_user,
     password: db_pass,
     port: db_port,
-    /*
     ssl: {
         rejectUnauthorized: false
     }
-    */
 });
 
 const UserCreation = {
@@ -127,6 +136,15 @@ const Login = {
 
 }
 
+fastify.get('/info', async(request,reply) => {
+    reply
+        .code(200)
+        .header('Content-Type', 'application/json; charset=utf-8')
+        .send({
+            message: 'server node',
+        });
+});
+
 fastify.post('/signin',UserCreation, async(request,reply) => {
 
     const client = await pool.connect();
@@ -135,7 +153,7 @@ fastify.post('/signin',UserCreation, async(request,reply) => {
         await client.query('BEGIN')
 
         var text = 'INSERT INTO userr VALUES (DEFAULT,$1, $2, $3)';
-        var values = [user.username,user.name,user.password];
+        var values = [user.username,user.name,md5_hash(user.password)];
         await client.query(text,values);
 
         var result = await client.query('SELECT id_user FROM userr WHERE username = $1;',[user.username])
@@ -150,9 +168,7 @@ fastify.post('/signin',UserCreation, async(request,reply) => {
 
         f = base64ToFile(user.photo_base64);
         mt = f.type
-        const key_name = strftime('%Y_%m_%d_%H-%M-%S.%L');
-
-        var s3 = new AWS.S3({ apiVersion: '2006-03-01' });
+        const key_name = "Fotos_Perfil/" + strftime('%Y_%m_%d_%H-%M-%S.%L');
 
         const uploadParams = {
             Bucket : bucket_name,
@@ -298,9 +314,7 @@ fastify.post('/upload_photo', PhotoUpload , async(request,reply) => {
         const photo = request.body
         f = base64ToFile(photo.photo_base64);
         mt = f.type
-        const key_name = strftime('%Y_%m_%d_%H-%M-%S.%L');
-
-        var s3 = new AWS.S3({ apiVersion: '2006-03-01' });
+        const key_name = "Fotos_Publicadas/" + strftime('%Y_%m_%d_%H-%M-%S.%L');
 
         const uploadParams = {
             Bucket : bucket_name,
@@ -421,7 +435,7 @@ fastify.post('/update_profile', UserUpdate , async(request,reply) => {
     try{
         await client.query('BEGIN');
         const user = request.body;
-        const log = await client.query('SELECT * FROM userr WHERE id_user = $1 AND password = $2',[user.user_id,user.password]);
+        const log = await client.query('SELECT * FROM userr WHERE id_user = $1 AND password = $2',[user.user_id,md5_hash(user.password)]);
         if (log.rowCount === 0){
             throw new Error("Incorrect password")
         }
@@ -439,9 +453,7 @@ fastify.post('/update_profile', UserUpdate , async(request,reply) => {
             await client.query(text,[id_album]);
             f = base64ToFile(user.new_photo_base64);
             mt = f.type
-            const key_name = strftime('%Y_%m_%d_%H-%M-%S.%L');
-
-            var s3 = new AWS.S3({ apiVersion: '2006-03-01' });
+            const key_name ="Fotos_Perfil/" + strftime('%Y_%m_%d_%H-%M-%S.%L');
 
             const uploadParams = {
                 Bucket : bucket_name,
@@ -488,7 +500,7 @@ fastify.post('/login', Login , async(request,reply) => {
     const client = await pool.connect();
     try{
         creds = request.body;
-        const rows = await client.query('SELECT 0 FROM userr WHERE username = $1 AND password = $2',[creds.username,creds.password]);
+        const rows = await client.query('SELECT 0 FROM userr WHERE username = $1 AND password = $2',[creds.username,md5_hash(creds.password)]);
         reply
             .code(200)
             .header('Content-Type', 'application/json; charset=utf-8')
@@ -504,6 +516,15 @@ fastify.post('/login', Login , async(request,reply) => {
     }finally{
         client.release();
     }
+});
+
+
+
+fastify.register(cors,{
+    origin: "*",
+    methods: "*",
+    credentials: true,
+    allowedHeaders: "*"
 });
 
 fastify.listen({ port: 8000 }, function (err, address) {
@@ -549,4 +570,10 @@ function detectMimeType(base64 = '') {
   });
 
   return mimeType;
+}
+
+function md5_hash(content) {
+  const hashFunc = createHash('md5');
+  hashFunc.update(content);
+  return hashFunc.digest('hex');
 }
