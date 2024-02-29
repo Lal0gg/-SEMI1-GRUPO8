@@ -1,0 +1,5 @@
+<div className="absolute bottom-4 right-4">
+                    <button className="bg-bluebell text-white px-4 py-2 rounded-md mr-4">Fotos</button>
+                    <button className="bg-bluebell text-white px-4 py-2 rounded-md mr-4">Subir Foto</button>
+                    <button className="bg-bluebell text-white px-4 py-2 rounded-md mr-4">Editar Albumes</button>
+                </div>
