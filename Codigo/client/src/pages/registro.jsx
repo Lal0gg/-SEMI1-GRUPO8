@@ -1,17 +1,23 @@
 import FormRegistro from '../components/FormReg'
-import Login from '../components/login'
-import SelectFoto from '../components/SelectFoto'
+import Login from './login'
+import ImageContent from '../components/imageCont'
+import '../assets/Patron.css'
+import NavBarr from '../components/NavBar2'
 
 export default function Registro() {
     return (
-        <div className='flex justify-center items-center h-auto'>
-            <div className='flex-1'>
-            <SelectFoto />
+        <>
+            <div className='flex w-full justify-center items-center h-screen xdd6'>
+            <NavBarr/>
+                <div className='flex-1'>
+                    <ImageContent />
+                </div>
+                <div className='flex-1'>
+                    <FormRegistro />
+                </div>
             </div>
-            <div className='flex-1'>
-            <FormRegistro />
-            </div>
-        </div>
+        </>
+
     )
 }
 
