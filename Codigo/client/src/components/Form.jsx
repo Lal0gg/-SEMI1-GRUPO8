@@ -1,5 +1,14 @@
+import { useNavigate } from 'react-router-dom';
+
+
 
 export default function Form() {
+    const navigate = useNavigate();
+
+    const irPerfil = () => {
+        navigate('/perfil');
+    };
+
     return (
         <>
             <div className="bg-white px-12 py-20 rounded-3xl border-gray-100">
@@ -25,11 +34,11 @@ export default function Form() {
                         <button className="font-medium text-base text-blue-400">Olvido su Password</button>
                     </div>
                     <div className="mt-8 flex flex-col gap-t-4">
-                        <button className="active:scale-[.98] active:duration-75 transition-all hover:scale-[1.01] ease-in-out py-3 rounded-xl bg-blue-400 text-white text-lg font-bold">Ingrese</button>
+                        <button onClick={irPerfil} className="active:scale-[.98] active:duration-75 transition-all hover:scale-[1.01] ease-in-out py-3 rounded-xl bg-blue-400 text-white text-lg font-bold">Ingrese</button>
                     </div>
                     <div className="mt-8 flex justify-center items-center">
                         <p className="font-medium text-base">No tenes cuenta?</p>
-                        <button className="font-medium text-base text-blue-400 ml-2">Registrate</button>
+                        <button  className="font-medium text-base text-blue-400 ml-2">Registrate</button>
 
                     </div>
                 </div>
