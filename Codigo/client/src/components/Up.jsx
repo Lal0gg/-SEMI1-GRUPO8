@@ -76,8 +76,11 @@ export default function Up() {
         Albúm
       </h2>
 
-      <input type="text" id="textbox" style={{ position: 'absolute', top: '400px', right: '450px', width: '350px', height: '30px' }} />
-
+      <select id="dropdown" style={{ position: 'absolute', top: '400px', right: '450px', width: '350px', height: '30px' }}>
+    <option value="opcion1">Fotos de perfil</option>
+    <option value="opcion2">Opción 2</option>
+    <option value="opcion3">Opción 3</option>
+</select>
 
 
       <button
@@ -94,16 +97,6 @@ export default function Up() {
         style={{ position: 'absolute', top: '350px', right: '140px' }}>
         Crear Albúm
       </button>
-
-
-
-
-
-
-
-
-
-
 
     </div>
   );
