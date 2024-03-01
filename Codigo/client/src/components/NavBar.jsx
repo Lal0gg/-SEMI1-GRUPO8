@@ -20,6 +20,18 @@ export default function NavBar() {
     navigate('/Perfil');
 };
 
+const irVer = () => {
+  navigate('/Ver');
+};
+
+const irEditar = () => {
+  navigate('/Editar');
+};
+
+const irSubir = () => {
+  navigate('/Subir');
+};
+
 const cerrarSesion = () => {
   navigate('/');
 };
@@ -65,6 +77,15 @@ const cerrarSesion = () => {
                     </li>
                     <li>
                       <a onClick={irEditarP} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-indigo-950 dark:hover:text-white">Editar Perfil</a>
+                    </li>
+                    <li>
+                      <a onClick={irVer} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-indigo-950 dark:hover:text-white">Ver Fotos</a>
+                    </li>
+                    <li>
+                      <a onClick={irEditar} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-indigo-950 dark:hover:text-white">Editar Albúm</a>
+                    </li>
+                    <li>
+                      <a onClick={irSubir} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-indigo-950 dark:hover:text-white">Subir Fotos</a>
                     </li>
                   </ul>
                   <div className="py-1">

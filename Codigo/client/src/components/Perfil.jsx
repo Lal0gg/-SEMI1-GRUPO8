@@ -1,8 +1,22 @@
 import fotito from '../images/icon13.jpeg';
-
+import { useNavigate } from 'react-router-dom';
 
 export default function Perfil() {
-    
+    const navigate = useNavigate();
+
+    const irEdit = () => {
+        navigate('/editar');
+    };
+
+    const irView = () => {
+        navigate('/ver');
+    };
+
+
+    const irUp = () => {
+        navigate('/subir');
+    };
+
 
     return (
         <div className="flex flex-col justify-center items-center h-screen">
@@ -21,9 +35,9 @@ export default function Perfil() {
                     </div>
                 </div>
                 <div className="absolute bottom-4 right-4">
-                    <button className="bg-bluebell text-white px-4 py-2 rounded-md mr-4">Fotos</button>
-                    <button className="bg-bluebell text-white px-4 py-2 rounded-md mr-4">Subir Foto</button>
-                    <button className="bg-bluebell text-white px-4 py-2 rounded-md mr-4">Editar Albumes</button>
+                    <button onClick= {irView} className="bg-bluebell text-white px-4 py-2 rounded-md mr-4">Fotos</button>
+                    <button onClick= {irUp} className="bg-bluebell text-white px-4 py-2 rounded-md mr-4">Subir Foto</button>
+                    <button onClick= {irEdit} className="bg-bluebell text-white px-4 py-2 rounded-md mr-4">Editar Albumes</button>
                 </div>
             </div>
         </div>
