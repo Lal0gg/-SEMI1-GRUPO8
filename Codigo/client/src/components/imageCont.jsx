@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
 
-export default function ImageContent() {
-    const [image, setImage] = useState(null);
+export default function ImageContent({ onImageUpload }) {
+    const [imageBase64, setImageBase64] = useState(null);
 
     const handleImageChange = (e) => {
         const file = e.target.files[0];
         const reader = new FileReader();
 
         reader.onloadend = () => {
-            setImage(reader.result);
+            const base64String = reader.result;
+            setImageBase64(base64String);
+            onImageUpload(base64String);
         };
 
         if (file) {
@@ -26,8 +28,8 @@ export default function ImageContent() {
                     onChange={handleImageChange}
                     className="absolute w-full h-full opacity-0"
                 />
-                {image ? (
-                    <img src={image} alt="Uploaded" className="w-full h-full object-cover rounded-lg" />
+                {imageBase64 ? (
+                    <img src={imageBase64} alt="Uploaded" className="w-full h-full object-cover rounded-lg" />
                 ) : (
                     <p className="text-gray-500">Arrastra y suelta una imagen aquí o haz clic para seleccionar</p>
                 )}
