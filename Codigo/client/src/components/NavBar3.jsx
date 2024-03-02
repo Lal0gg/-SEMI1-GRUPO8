@@ -5,6 +5,7 @@ import { useNavigate, Link } from 'react-router-dom';
 export default function NavBar() {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    
     const irLogin = () => {
         const navigate = useNavigate();
         navigate('/login');
