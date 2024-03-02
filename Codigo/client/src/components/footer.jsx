@@ -3,7 +3,7 @@ import logito from "../images/icon0.png"
 export default function Footer() {
     return (
         <>
-            <footer className="p-4 bg-gradient-to-l from-bluebell to-nasupurple via-nasupurple  sm:p-6">
+            <footer className="p-4 bg-gradient-to-l from-sky-700 to-blue-500 via-nasupurple sm:p-6">
                 <div className="mx-auto max-w-screen-xl">
                     <div className="md:flex md:justify-between">
                         <div className="mb-6 md:mb-0">

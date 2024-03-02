@@ -1,13 +1,13 @@
 
 import React, { useState } from 'react';
 import Footer from '../components/footer';
-import Image1 from '../images/1.png';
-import Image2 from '../images/2.png';
-import Image3 from '../images/3.png';
-import Image4 from '../images/4.jpg';
-import Image5 from '../images/5.jpg';
+import Image1 from '../images/1.jpg';
+import Image2 from '../images/2.jpg';
+import Image3 from '../images/3.jpg';
+import Image4 from '../images/4.jpeg';
+import Image5 from '../images/5.png';
 import Image6 from '../images/6.png';
-import Image7 from '../images/7.jpg';
+import Image7 from '../images/7.png';
 
 import '../assets/Patron.css'
 
