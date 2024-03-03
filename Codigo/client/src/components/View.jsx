@@ -1,132 +1,68 @@
-import  { useState } from 'react';
+import { useState } from 'react';
+import Service from '../services/Service';
+import fotocita4 from '../images/album.png';
+
+
 export default function Prueba() {
-  const [image, setImage] = useState(null);
-  const [imageList, setImageList] = useState([]);
-  const [selectedImage, setSelectedImage] = useState(null);
-  const [newImageName, setNewImageName] = useState('');
+  const usuarioActual = JSON.parse(localStorage.getItem('usuarioActual'));
+  const imagenusuario = usuarioActual.profile_picture_url;
+  const username = usuarioActual.username;
+  const id = usuarioActual.id;
 
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        setImage({
-          src: reader.result,
-          name: newImageName.trim() || `Foto ${imageList.length + 1}`,
-        });
-        setNewImageName('');
-      };
-      reader.readAsDataURL(file);
+
+  const busquedaListaAlbum = async () => {
+    const dropdown = document.getElementById("miDropdown");
+    const albumName = dropdown.value;
+    try {
+      const res = await Service.ObtenerAlbumLista(username);
+      const lista = res.data.albums;
+      console.log("Lista de albums: ", lista);
+
+      // Filtrar la lista de álbumes para encontrar el álbum con el nombre especificado
+      const albumEncontrado = lista.find((album) => album.album_name === albumName);
+
+      if (albumEncontrado) {
+        console.log("Álbum encontrado: ", albumEncontrado);
+        return albumEncontrado; // Retornar el álbum encontrado
+      } else {
+        console.log("Álbum no encontrado", albumEncontrado);
+        return null; // Retornar null si el álbum no se encuentra
+      }
+    } catch (error) {
+      console.log(error);
+      throw error; // Lanzar el error para manejarlo en la función que llama a busquedaListaAlbum
     }
-  };
+  }
 
-  const handleImageUpload = () => {
-    if (image) {
-      setImageList([...imageList, image]);
-      setImage(null);
-    }
-  };
-
-  const handleImageClick = (index) => {
-    setSelectedImage(index);
-  };
-
-  const handleCloseModal = () => {
-    setSelectedImage(null);
-  };
-
-  const handleChangeName = () => {
-    if (selectedImage !== null && newImageName.trim() !== '') {
-      const updatedImageList = [...imageList];
-      updatedImageList[selectedImage] = { ...updatedImageList[selectedImage], name: newImageName.trim() };
-      setImageList(updatedImageList);
-      setNewImageName('');
-    }
-  };
 
   return (
-    <>
-      <div>
-        <input type="file" accept="image/*" onChange={handleImageChange} />
-        <label>Nombre de la Foto:</label>
-        <input type="text" value={newImageName} onChange={(e) => setNewImageName(e.target.value)} />
-        <button onClick={handleImageUpload}>Subir Foto</button>
-      </div>
+    
+   <div> <img
+   src={imagenusuario}
+   className="max-w-sm rounded-3xl border  p-1 dark:border-neutral-600 dark:bg-azulitomorado"
+   alt="..." style={{ position: 'absolute', top: '170px', right: '1095px' }} 
+   />
+<div style={{ position: 'absolute', top: '0', right: '700px' }}>
+ <div className="bg-white px-20 py-20 rounded-3xl border-gray-100" style={{ position: 'absolute', top: '400px', right: '350px', width: '350px', height: '30px', backgroundColor: '#a18fff' }}>
+ </div>
+ <h2 className="text-4xl font-medium leading-tight" style={{ position: 'absolute', top: '408px', right: '350px', width: '350px', height: '30px' }}>
+   <span
+     className="inline-block whitespace-nowrap rounded-[0.27rem] bg-primary-100 px-[0.65em] pb-[0.25em] pt-[0.35em] text-center align-baseline text-[0.75em] font-bold leading-none text-primary-700 "
+   ><img
+       src={fotocita4}  // Reemplaza con la ruta de tu imagen
+       alt="Imagen"
+       className="w-6 h-6 mr-2"  // Ajusta el tamaño de la imagen según tus necesidades
+     />
+     </span>
+ </h2>
+ <h3 className="text-2xl" style={{ position: 'absolute', top: '412px', right: '540px', }}>
+   Albumes:
+ </h3>
+ <select id="miDropdown"
+   style={{ position: 'absolute', top: '460px', right: '350px', width: '350px', height: '30px' }} >
+ </select>
+</div></div>
+    
 
-      {image && (
-        <div style={{ margin: '20px' }}>
-          <div
-            style={{
-              display: 'inline-block',
-              borderRadius: '10px',
-            }}
-          >
-            <img
-              src={image.src}
-              alt="Vista previa"
-              style={{ maxWidth: '100%', maxHeight: '300px', borderRadius: '8px', cursor: 'pointer' }}
-              onClick={() => handleImageClick(-1)}
-            />
-            <p>{image.name}</p>
-          </div>
-        </div>
-      )}
-
-      <div>
-        <h2>Album de Fotos de Perfil</h2>
-        <div style={{ display: 'flex', flexWrap: 'wrap' }}>
-          {imageList.map((img, index) => (
-            <div
-              key={index}
-              style={{
-                margin: '10px',
-                width: '150px',
-                height: '150px',
-                overflow: 'hidden',
-                position: 'relative',
-                borderRadius: '10px',
-              }}
-            >
-              <img
-                src={img.src}
-                alt={img.name}
-                style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px', cursor: 'pointer' }}
-                onClick={() => handleImageClick(index)}
-              />
-              <p>{img.name}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {selectedImage !== null && (
-        <div
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            backgroundColor: 'rgba(0, 0, 0, 0.7)',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            zIndex: 999,
-          }}
-          onClick={handleCloseModal}
-        >
-          <div>
-            <img
-              src={imageList[selectedImage].src}
-              alt={imageList[selectedImage].name}
-              style={{ maxWidth: '80%', maxHeight: '80%', borderRadius: '8px' }}
-            />
-            <label>Nuevo Nombre:</label>
-            <input type="text" value={newImageName} onChange={(e) => setNewImageName(e.target.value)} />
-            <button onClick={handleChangeName}>Cambiar Nombre</button>
-          </div>
-        </div>
-      )}
-    </>
-  );
-}
+);
+};
