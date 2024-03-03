@@ -152,7 +152,7 @@ export default function Edit() {
   }
 
   return (
-    <div className="flex items-center justify-center h-full xdd7" >
+    <div className="flex items-center justify-center h-full " >
       <div className="bg-white px-20 py-20 rounded-3xl border-gray-100" style={{ position: 'absolute', top: '90px', right: '350px', width: '350px', height: '30px', backgroundColor: '#a18fff' }}>
       </div>
       <h2 className="text-4xl font-medium leading-tight" >
