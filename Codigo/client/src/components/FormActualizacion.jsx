@@ -65,6 +65,8 @@ export default function FormActualizacion() {
                 username: username,
             }
             localStorage.setItem('usuarioActual', JSON.stringify(nuevoUsuario));
+            console.log("Usuario actualizado en localstorage" + nuevoUsuario);
+            alert("Usuario actualizado correctamente");
         } catch (error) {
             if (error.response && error.response.status === 500 && error.response.data && error.response.data.detail === "Incorrect password") {
                 // Si el error es por contraseña incorrecta, muestra una alerta

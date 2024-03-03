@@ -11,7 +11,8 @@ module.exports = {
         aquavelvet:'#01a3a4',
         holyhock: '#833471',
         forgottenpurple: '#9980FA',
-        bluebell: '#3B3B98'
+        bluebell: '#3B3B98',
+        azulitomorado:'#a18fff'
       }
     },
   },
