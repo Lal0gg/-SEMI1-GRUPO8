@@ -4,6 +4,8 @@ import  { useState } from 'react';
 
 
 export default function Up() {
+
+
   const [image, setImage] = useState(null);
 
   const handleImageChange = (e) => {
