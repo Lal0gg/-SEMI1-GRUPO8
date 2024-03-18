@@ -1,11 +1,13 @@
 # -SEMI1-GRUPO8
 Repositorio del Grupo 8 para la práctica 1 del curso Seminario de Sistemas 1 ☝️🤓
 
-Eduardo Josué González Cifuentes 201900647
+ **Carnet** | **Nombre** |
+| ------ | ------ |
+| 201900647 | Eduardo Josué González Cifuentes |
+| 201902301 | Piter Angel Esaú Valiente de León |
+| 201901756 | José Andrés López Pineda |
 
-Piter Angel Esaú Valiente de León 201902301
 
-José Andrés López Pineda 201901756
 
 # Manual de Configuración
 
@@ -55,5 +57,25 @@ PostgreSQL (en RDS), al igual que guardan imágenes en un bucket de s3.
 ![rds](./img/rds.png)
 
 ### Aplicación Web
+#### Home
+![home](./img/home.png)
+
+#### Login
+![login](./img/login.png)
+
+#### Registro
+![registro](./img/editarperfil.png)
+
+#### Perfil
+![perfil](./img/perfil.png)
+
+#### Fotos
+![fotos](./img/fotos.png)
+
+#### Editar Albumes
+![editar](./img/editar.png)
+
+#### Subir Foto
+![subir](./img/subirfoto.png)
 
 
