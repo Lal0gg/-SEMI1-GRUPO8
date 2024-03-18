@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import Service from '../services/Service';
 
 export default function Up() {
+
+
   const [image, setImage] = useState(null);
   const [albumList, setAlbumList] = useState([]);
   const [selectedAlbum, setSelectedAlbum] = useState('');
