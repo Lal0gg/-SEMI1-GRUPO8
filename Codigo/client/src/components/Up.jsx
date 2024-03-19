@@ -2,16 +2,22 @@ import fotocita from '../images/cambiar_name.png';
 import fotocita2 from '../images/album.png';
 import { useState, useEffect } from 'react';
 import Service from '../services/Service';
+import { useNavigate } from 'react-router-dom';
 
 export default function Up() {
   const [image, setImage] = useState(null);
   const [albumList, setAlbumList] = useState([]);
   const [selectedAlbum, setSelectedAlbum] = useState('');
   const [photoName, setPhotoName] = useState('');
+  const navigate = useNavigate();
 
   useEffect(() => {
     verListaAlbums();
   }, []);
+
+  const irCrearAlbum = () => {
+    navigate('/editar');
+  }
 
   const verListaAlbums = async () => {
     const usuario = JSON.parse(localStorage.getItem('usuarioActual'));
@@ -95,7 +101,7 @@ export default function Up() {
         ))}
       </select>
       <button type="button" onClick={handleUploadPhoto} className="inline-block rounded-full bg-purple-600 px-8 pb-3 pt-3.5 text-sm font-medium uppercase leading-normal text-white shadow-[0_4px_9px_-4px_rgba(51,45,45,0.7)] transition duration-150 ease-in-out hover:bg-purple-700 hover:shadow-lg focus:bg-purple-700 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-purple-800 active:shadow-lg dark:bg-purple-800 dark:shadow-[0_4px_9px_-4px_#030202] dark:hover:bg-purple-800 dark:hover:shadow-lg dark:focus:bg-purple-800 dark:focus:shadow-lg dark:active:bg-purple-900 dark:active:shadow-lg" style={{ position: 'absolute', top: '250px', right: '160px' }}>Cargar</button>
-      <button type="button" className="inline-block rounded-full bg-purple-600 px-8 pb-3 pt-3.5 text-sm font-medium uppercase leading-normal text-white shadow-[0_4px_9px_-4px_rgba(51,45,45,0.7)] transition duration-150 ease-in-out hover:bg-purple-700 hover:shadow-lg focus:bg-purple-700 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-purple-800 active:shadow-lg dark:bg-purple-800 dark:shadow-[0_4px_9px_-4px_#030202] dark:hover:bg-purple-800 dark:hover:shadow-lg dark:focus:bg-purple-800 dark:focus:shadow-lg dark:active:bg-purple-900 dark:active:shadow-lg" style={{ position: 'absolute', top: '350px', right: '140px' }}>Crear Álbum</button>
+      <button type="button" onClick={irCrearAlbum} className="inline-block rounded-full bg-purple-600 px-8 pb-3 pt-3.5 text-sm font-medium uppercase leading-normal text-white shadow-[0_4px_9px_-4px_rgba(51,45,45,0.7)] transition duration-150 ease-in-out hover:bg-purple-700 hover:shadow-lg focus:bg-purple-700 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-purple-800 active:shadow-lg dark:bg-purple-800 dark:shadow-[0_4px_9px_-4px_#030202] dark:hover:bg-purple-800 dark:hover:shadow-lg dark:focus:bg-purple-800 dark:focus:shadow-lg dark:active:bg-purple-900 dark:active:shadow-lg" style={{ position: 'absolute', top: '350px', right: '140px' }}>Crear Álbum</button>
     </div>
   );
 }
