@@ -2,6 +2,7 @@
 import Edit from '../components/Edit';
 import NavBar from '../components/NavBar'
 import '../assets/Patron.css'
+import '../App.css';
 
 
 export default function Subirfot() {

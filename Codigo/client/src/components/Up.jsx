@@ -5,6 +5,8 @@ import Service from '../services/Service';
 import { useNavigate } from 'react-router-dom';
 
 export default function Up() {
+
+
   const [image, setImage] = useState(null);
   const [albumList, setAlbumList] = useState([]);
   const [selectedAlbum, setSelectedAlbum] = useState('');

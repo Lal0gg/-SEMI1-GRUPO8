@@ -13,22 +13,37 @@ export default function Edit() {
   const usuario = JSON.parse(localStorage.getItem('usuarioActual'));
   const username = usuario.username;
   const user_id = usuario.id
+<<<<<<< HEAD
+  const [albumName, setalbumName] = useState('');
+
+=======
   const fotoperfil = usuario.profile_picture_url;
   const [albumName, setalbumName] = useState('');
 
   const listaAlbums = [];
+>>>>>>> Feature_Lalo
 
   const verLista = async () => {
     Service.ObtenerAlbumLista(username)
       .then((res) => {
+<<<<<<< HEAD
+        console.log("ALBUMS OBTENIDOS ;)");
+        const data_usuario = res.data.albums;
+
+=======
         console.log("aaaaaaa")
         console.log("ALBUMS OBTENIDOS ;)");
         const data_usuario = res.data.albums;
         listaAlbums.push(data_usuario);
+>>>>>>> Feature_Lalo
         // Crear un array con solo los nombres de los álbumes
         const albumNames = data_usuario.map((album) => album.album_name);
         // Construir el dropdown con los nombres de los álbumes
         construirDropdown(albumNames);
+<<<<<<< HEAD
+
+=======
+>>>>>>> Feature_Lalo
         data_usuario.forEach((album) => {
           const albumName = album.album_name;
           const albumId = album.album_id;
@@ -36,6 +51,11 @@ export default function Edit() {
         });
       }).catch((error) => {
         console.log(error);
+<<<<<<< HEAD
+      });
+  }
+
+=======
 
       });
   }
@@ -107,14 +127,22 @@ export default function Edit() {
       throw error; // Lanzar el error para manejarlo en la función que llama a busquedaListaAlbum
     }
   }
+>>>>>>> Feature_Lalo
 
 
   const construirDropdown = (albumNames) => {
     const dropdown = document.getElementById("miDropdown"); // Reemplaza "miDropdown" con el ID de tu elemento dropdown
+<<<<<<< HEAD
+  
+    // Limpiar el dropdown antes de agregar nuevas opciones
+    dropdown.innerHTML = "";
+  
+=======
 
     // Limpiar el dropdown antes de agregar nuevas opciones
     dropdown.innerHTML = "";
 
+>>>>>>> Feature_Lalo
     // Agregar cada albumName como una opción al dropdown
     albumNames.forEach((albumName) => {
       const option = document.createElement("option");
@@ -125,6 +153,12 @@ export default function Edit() {
 
   const _CrearAlbum = async () => {
     try {
+<<<<<<< HEAD
+      const res = await Service.CrearAlbum(albumName, user_id);
+      const data = res.data;
+      console.log(data.albums);
+
+=======
       // Verificar si el nombre del álbum no está vacío o nulo
       if (!albumName) {
         // Si el nombre del álbum está vacío o nulo, muestra una alerta
@@ -137,11 +171,17 @@ export default function Edit() {
       const data = res.data;
       console.log(data.albums);
       alert("Álbum creado correctamente");
+>>>>>>> Feature_Lalo
     } catch (error) {
       console.log(error);
     }
   }
 
+<<<<<<< HEAD
+
+
+=======
+>>>>>>> Feature_Lalo
   const _albumName = (event) => {
     setalbumName(event.target.value)
   }
@@ -152,7 +192,12 @@ export default function Edit() {
   }
 
   return (
+<<<<<<< HEAD
+
+    <div className="flex items-center justify-center h-full xdd7" >
+=======
     <div className="flex items-center justify-center h-full " >
+>>>>>>> Feature_Lalo
       <div className="bg-white px-20 py-20 rounded-3xl border-gray-100" style={{ position: 'absolute', top: '90px', right: '350px', width: '350px', height: '30px', backgroundColor: '#a18fff' }}>
       </div>
       <h2 className="text-4xl font-medium leading-tight" >
@@ -168,11 +213,22 @@ export default function Edit() {
             alt="Imagen"
             className="w-6 h-6 mr-2"  // Ajusta el tamaño de la imagen según tus necesidades
           /></span>
+<<<<<<< HEAD
+
+      </h2>
+      <h3 className="text-2xl" style={{ position: 'absolute', top: '95px', right: '440px', }}>
+        Nombre Albúm:
+      </h3>
+
+      <input type="text" value={albumName} onChange={_albumName} id="textbox" style={{ position: 'absolute', top: '140px', right: '350px', width: '350px', height: '30px' }} />
+
+=======
       </h2>
       <h3 className="text-2xl" style={{ position: 'absolute', top: '99px', right: '470px', }}>
         Nombre Albúm:
       </h3>
       <input type="text" value={albumName} onChange={_albumName} id="textbox" style={{ position: 'absolute', top: '140px', right: '350px', width: '350px', height: '30px' }} />
+>>>>>>> Feature_Lalo
       <div className="bg-white px-20 py-20 rounded-3xl border-gray-100" style={{ position: 'absolute', top: '400px', right: '350px', width: '350px', height: '30px', backgroundColor: '#a18fff' }}>
       </div>
       <h2 className="text-4xl font-medium leading-tight" style={{ position: 'absolute', top: '408px', right: '350px', width: '350px', height: '30px' }}>
@@ -184,6 +240,19 @@ export default function Edit() {
             className="w-6 h-6 mr-2"  // Ajusta el tamaño de la imagen según tus necesidades
           /></span>
       </h2>
+<<<<<<< HEAD
+
+      <select id="miDropdown"   
+  style={{ position: 'absolute', top: '460px', right: '350px', width: '350px', height: '30px' }} >
+
+      </select>
+
+      <button
+        type="button"
+
+        className="inline-block rounded-full bg-neutral-800 px-8 pb-3 pt-3.5 text-sm font-medium uppercase leading-normal text-neutral-50 shadow-[0_4px_9px_-4px_rgba(51,45,45,0.7)] transition duration-150 ease-in-out hover:bg-neutral-800 hover:shadow-[0_8px_9px_-4px_rgba(51,45,45,0.2),0_4px_18px_0_rgba(51,45,45,0.1)] focus:bg-neutral-800 focus:shadow-[0_8px_9px_-4px_rgba(51,45,45,0.2),0_4px_18px_0_rgba(51,45,45,0.1)] focus:outline-none focus:ring-0 active:bg-neutral-900 active:shadow-[0_8px_9px_-4px_rgba(51,45,45,0.2),0_4px_18px_0_rgba(51,45,45,0.1)] dark:bg-neutral-900 dark:shadow-[0_4px_9px_-4px_#030202] dark:hover:bg-neutral-900 dark:hover:shadow-[0_8px_9px_-4px_rgba(3,2,2,0.3),0_4px_18px_0_rgba(3,2,2,0.2)] dark:focus:bg-neutral-900 dark:focus:shadow-[0_8px_9px_-4px_rgba(3,2,2,0.3),0_4px_18px_0_rgba(3,2,2,0.2)] dark:active:bg-neutral-900 dark:active:shadow-[0_8px_9px_-4px_rgba(3,2,2,0.3),0_4px_18px_0_rgba(3,2,2,0.2)]"
+        style={{ position: 'absolute', top: '400px', right: '450px' }}>
+=======
       <h3 className="text-2xl" style={{ position: 'absolute', top: '412px', right: '540px', }}>
         Albumes:
       </h3>
@@ -195,25 +264,42 @@ export default function Edit() {
         onClick={eliminarAlbum}
         className="inline-block rounded-full bg-purple-600 px-8 pb-3 pt-3.5 text-sm font-medium uppercase leading-normal text-white shadow-[0_4px_9px_-4px_rgba(51,45,45,0.7)] transition duration-150 ease-in-out hover:bg-purple-700 hover:shadow-lg focus:bg-purple-700 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-purple-800 active:shadow-lg dark:bg-purple-800 dark:shadow-[0_4px_9px_-4px_#030202] dark:hover:bg-purple-800 dark:hover:shadow-lg dark:focus:bg-purple-800 dark:focus:shadow-lg dark:active:bg-purple-900 dark:active:shadow-lg"
         style={{ position: 'absolute', top: '305px', right: '350px' }}>
+>>>>>>> Feature_Lalo
         Eliminar Albúm
       </button>
       <button
         type="button"
         onClick={_CrearAlbum}
+<<<<<<< HEAD
+        className="inline-block rounded-full bg-neutral-800 px-8 pb-3 pt-3.5 text-sm font-medium uppercase leading-normal text-neutral-50 shadow-[0_4px_9px_-4px_rgba(51,45,45,0.7)] transition duration-150 ease-in-out hover:bg-neutral-800 hover:shadow-[0_8px_9px_-4px_rgba(51,45,45,0.2),0_4px_18px_0_rgba(51,45,45,0.1)] focus:bg-neutral-800 focus:shadow-[0_8px_9px_-4px_rgba(51,45,45,0.2),0_4px_18px_0_rgba(51,45,45,0.1)] focus:outline-none focus:ring-0 active:bg-neutral-900 active:shadow-[0_8px_9px_-4px_rgba(51,45,45,0.2),0_4px_18px_0_rgba(51,45,45,0.1)] dark:bg-neutral-900 dark:shadow-[0_4px_9px_-4px_#030202] dark:hover:bg-neutral-900 dark:hover:shadow-[0_8px_9px_-4px_rgba(3,2,2,0.3),0_4px_18px_0_rgba(3,2,2,0.2)] dark:focus:bg-neutral-900 dark:focus:shadow-[0_8px_9px_-4px_rgba(3,2,2,0.3),0_4px_18px_0_rgba(3,2,2,0.2)] dark:active:bg-neutral-900 dark:active:shadow-[0_8px_9px_-4px_rgba(3,2,2,0.3),0_4px_18px_0_rgba(3,2,2,0.2)]"
+        style={{ position: 'absolute', top: '280px', right: '650px' }}>
+=======
         className="inline-block rounded-full bg-purple-600 px-8 pb-3 pt-3.5 text-sm font-medium uppercase leading-normal text-white shadow-[0_4px_9px_-4px_rgba(51,45,45,0.7)] transition duration-150 ease-in-out hover:bg-purple-700 hover:shadow-lg focus:bg-purple-700 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-purple-800 active:shadow-lg dark:bg-purple-800 dark:shadow-[0_4px_9px_-4px_#030202] dark:hover:bg-purple-800 dark:hover:shadow-lg dark:focus:bg-purple-800 dark:focus:shadow-lg dark:active:bg-purple-900 dark:active:shadow-lg"
         style={{ position: 'absolute', top: '305px', right: '750px' }}>
+>>>>>>> Feature_Lalo
         Agregar
       </button>
       <button
+<<<<<<< HEAD
+        type="button" onClick={verLista}
+        className="inline-block rounded-full bg-neutral-800 px-8 pb-3 pt-3.5 text-sm font-medium uppercase leading-normal text-neutral-50 shadow-[0_4px_9px_-4px_rgba(51,45,45,0.7)] transition duration-150 ease-in-out hover:bg-neutral-800 hover:shadow-[0_8px_9px_-4px_rgba(51,45,45,0.2),0_4px_18px_0_rgba(51,45,45,0.1)] focus:bg-neutral-800 focus:shadow-[0_8px_9px_-4px_rgba(51,45,45,0.2),0_4px_18px_0_rgba(51,45,45,0.1)] focus:outline-none focus:ring-0 active:bg-neutral-900 active:shadow-[0_8px_9px_-4px_rgba(51,45,45,0.2),0_4px_18px_0_rgba(51,45,45,0.1)] dark:bg-neutral-900 dark:shadow-[0_4px_9px_-4px_#030202] dark:hover:bg-neutral-900 dark:hover:shadow-[0_8px_9px_-4px_rgba(3,2,2,0.3),0_4px_18px_0_rgba(3,2,2,0.2)] dark:focus:bg-neutral-900 dark:focus:shadow-[0_8px_9px_-4px_rgba(3,2,2,0.3),0_4px_18px_0_rgba(3,2,2,0.2)] dark:active:bg-neutral-900 dark:active:shadow-[0_8px_9px_-4px_rgba(3,2,2,0.3),0_4px_18px_0_rgba(3,2,2,0.2)]"
+        style={{ position: 'absolute', top: '280px', right: '450px' }}>
+=======
         type="button" onClick={editarAlbum}
         className="inline-block rounded-full bg-purple-600 px-8 pb-3 pt-3.5 text-sm font-medium uppercase leading-normal text-white shadow-[0_4px_9px_-4px_rgba(51,45,45,0.7)] transition duration-150 ease-in-out hover:bg-purple-700 hover:shadow-lg focus:bg-purple-700 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-purple-800 active:shadow-lg dark:bg-purple-800 dark:shadow-[0_4px_9px_-4px_#030202] dark:hover:bg-purple-800 dark:hover:shadow-lg dark:focus:bg-purple-800 dark:focus:shadow-lg dark:active:bg-purple-900 dark:active:shadow-lg"
         style={{ position: 'absolute', top: '305px', right: '550px' }}>
+>>>>>>> Feature_Lalo
         Modificar
       </button>
       <button
         type="button"
+<<<<<<< HEAD
+        className="inline-block rounded-full bg-neutral-800 px-8 pb-3 pt-3.5 text-sm font-medium uppercase leading-normal text-neutral-50 shadow-[0_4px_9px_-4px_rgba(51,45,45,0.7)] transition duration-150 ease-in-out hover:bg-neutral-800 hover:shadow-[0_8px_9px_-4px_rgba(51,45,45,0.2),0_4px_18px_0_rgba(51,45,45,0.1)] focus:bg-neutral-800 focus:shadow-[0_8px_9px_-4px_rgba(51,45,45,0.2),0_4px_18px_0_rgba(51,45,45,0.1)] focus:outline-none focus:ring-0 active:bg-neutral-900 active:shadow-[0_8px_9px_-4px_rgba(51,45,45,0.2),0_4px_18px_0_rgba(51,45,45,0.1)] dark:bg-neutral-900 dark:shadow-[0_4px_9px_-4px_#030202] dark:hover:bg-neutral-900 dark:hover:shadow-[0_8px_9px_-4px_rgba(3,2,2,0.3),0_4px_18px_0_rgba(3,2,2,0.2)] dark:focus:bg-neutral-900 dark:focus:shadow-[0_8px_9px_-4px_rgba(3,2,2,0.3),0_4px_18px_0_rgba(3,2,2,0.2)] dark:active:bg-neutral-900 dark:active:shadow-[0_8px_9px_-4px_rgba(3,2,2,0.3),0_4px_18px_0_rgba(3,2,2,0.2)]"
+        style={{ position: 'absolute', top: '280px', right: '250px' }} onClick={cancelar}>
+=======
         className="inline-block rounded-full bg-purple-600 px-8 pb-3 pt-3.5 text-sm font-medium uppercase leading-normal text-white shadow-[0_4px_9px_-4px_rgba(51,45,45,0.7)] transition duration-150 ease-in-out hover:bg-purple-700 hover:shadow-lg focus:bg-purple-700 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-purple-800 active:shadow-lg dark:bg-purple-800 dark:shadow-[0_4px_9px_-4px_#030202] dark:hover:bg-purple-800 dark:hover:shadow-lg dark:focus:bg-purple-800 dark:focus:shadow-lg dark:active:bg-purple-900 dark:active:shadow-lg"
         style={{ position: 'absolute', top: '305px', right: '150px' }} onClick={cancelar}>
+>>>>>>> Feature_Lalo
         Cancelar
       </button>
     </div>
