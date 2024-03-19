@@ -1,38 +1,31 @@
-import base64
 from datetime import datetime
-import io
-from typing import Optional
-import boto3
-import os
-from fastapi.responses import JSONResponse
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi.exceptions import HTTPException
 from psycopg2 import pool
-import magic
+from fastapi import FastAPI
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from hashlib import md5
+import boto3
+import magic
+import os
+import base64
+import io
+
+
+import classes
 
 load_dotenv()
 endpoint = os.getenv('ENDPOINT')
-db_port = os.getenv("DB_PORT")
+db_port = os.getenv('DB_PORT')
 db_user = os.getenv('DB_USER')
 db_pass = os.getenv('DB_PASS')
 db_name = os.getenv('DB_NAME')
-rds_region = os.getenv('RDS_REGION')
-s3_region = os.getenv('S3_REGION')
-bucket = os.getenv('BUCKET_NAME')
-db_access_key = os.getenv('DB_ACCESS_KEY')
-db_secret_key = os.getenv('DB_SECRET_KEY')
+
 s3_access_key = os.getenv('S3_ACCESS_KEY')
 s3_secret_key = os.getenv('S3_SECRET_KEY')
-
-db_client = boto3.client(
-    service_name = 'rds',
-    region_name = rds_region,
-    aws_access_key_id = db_access_key,
-    aws_secret_access_key = db_secret_key,
-)
+s3_region = os.getenv('S3_REGION')
+bucket = os.getenv('BUCKET_NAME')
 
 s3_client = boto3.client(
     service_name = 's3',
@@ -40,188 +33,165 @@ s3_client = boto3.client(
     aws_secret_access_key = s3_secret_key,
 )
 
-conn_pool = pool.SimpleConnectionPool(1,20, host=endpoint, port=db_port, database=db_name, user=db_user, password=db_pass,sslrootcert="SSLCERTIFICATE")
+rekognition_client = boto3.client(
+    service_name = 'rekognition',
+    aws_access_key_id = os.getenv('REKOGNITION_ACCESS_KEY'),
+    aws_secret_access_key = os.getenv('REKOGNITION_SECRET_KEY'),
+    region_name = 'us-east-1'
+)
 
+translate_client = boto3.client(
+    service_name = 'translate',
+    aws_access_key_id = os.getenv('TRANSLATE_ACCESS_KEY'),
+    aws_secret_access_key = os.getenv('TRANSLATE_SECRET_KEY')
+)
 
-class UserCreation(BaseModel):
-    username: str
-    name: str
-    password: str
-    photo_base64: str
+InvalidParameterException = rekognition_client.exceptions.InvalidParameterException
 
-class User(BaseModel):
-    id: int
-    username:str
-    name:str
-    profile_picture_url:str
-
-class UserUpdate(BaseModel):
-    password:str
-    user_id:int
-    new_username:Optional[str]= None
-    new_name:Optional[str]= None
-    new_photo_base64:Optional[str]= None
-
-class Photo(BaseModel):
-    photo_id: int
-    photo_name: str
-    photo_url: str
-
-class PhotoUpload(BaseModel):
-    photo_name: str
-    photo_base64: str
-    album_id: int
-
-class Album(BaseModel):
-    album_name: str
-    album_id: int
-
-class AlbumList(BaseModel):
-    albums:list[Album]
-
-class AlbumPhotos(BaseModel):
-    album_id:int
-    photos:list[Photo]
-
-class AlbumCreation(BaseModel):
-    album_name:str
-    user_id:int
-
-class AlbumDeletion(BaseModel):
-    album_id:int
-
-class AlbumUpdate(BaseModel):
-    album_id:int
-    album_name:str
-
-class Message(BaseModel):
-    message: str
-
-class Login(BaseModel):
-    username:str
-    password:str
-    
-class LoginResponse(BaseModel):
-    correct:bool
+conn_pool = pool.SimpleConnectionPool(1, 20, user=db_user, password=db_pass, host=endpoint, port=db_port, database=db_name, sslrootcert="SSLCERTIFICATE")
 
 app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins = ["*"],
-    allow_credentials = True,
-    allow_methods = ["*"],
-    allow_headers = ["*"]
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"]
 )
 
-@app.get('/info',status_code=200,responses={200: {"model": Message}})
-def info():
-    return JSONResponse(status_code=200, content={"message":"server python"})
-
-@app.post('/signin', status_code=201,responses={201: {"model": Message}})
-def signin(user:UserCreation):
+@app.post('/signin',status_code=201, responses={201:{"model":classes.Message}})
+def signin(user: classes.UserCreate):
     conn = conn_pool.getconn()
+    key_name = "Fotos_Perfil/" + datetime.now().strftime('%Y_%m_%d_%H-%M-%S.%f')
     if not conn:
         raise HTTPException(status_code=500,detail="can't connect to database")
     try:
         cur = conn.cursor()
-        md5_pass = md5((user.password).encode('utf-8')).hexdigest()
-        cur.execute("INSERT INTO userr VALUES (DEFAULT,%s, %s, %s);",[user.username,user.name,md5_pass])
+        md5_pass = md5(user.password.encode('utf-8')).hexdigest()
+        cur.execute("""
+            INSERT INTO
+                usr(id_user,username,name,password)
+            VALUES
+                (DEFAULT,%s,%s,%s)
+            RETURNING
+                id_user
+        """,[user.username,user.name,md5_pass])
 
-        cur.execute("SELECT id_user FROM userr WHERE username = %s;",[user.username])
         query_results = cur.fetchall()
-        id = query_results[0][0]
-        cur.execute("INSERT INTO album VALUES (DEFAULT, %s, %s,1::bit(1));",["Fotos de Perfil",id])
+        id_user = query_results[0][0]
 
-        
-        cur.execute("SELECT id_album FROM album WHERE id_user= %s;",[id])
+        cur.execute("""
+            INSERT INTO tag
+                (id_tag,name) 
+            VALUES 
+                (DEFAULT,%s)
+            ON CONFLICT(name) DO UPDATE
+                SET id_tag = tag.id_tag
+            RETURNING id_tag
+        """, ['Fotos de Perfil'])
+
         query_results = cur.fetchall()
-        album_id = query_results[0][0]
+        id_tag = query_results[0][0]
+
         f = base64.b64decode(user.photo_base64)
         mt = magic.from_buffer(f,mime=True)
-        bucket_location = s3_client.get_bucket_location(Bucket=bucket)
-        key_name = "Fotos_Perfil/" + datetime.now().strftime('%Y_%m_%d_%H-%M-%S.%f')
-        s3_client.upload_fileobj(io.BytesIO(f),bucket,key_name, ExtraArgs={'ContentType':mt});
-        object_url = "https://s3-{0}.amazonaws.com/{1}/{2}".format(
-            bucket_location['LocationConstraint'],
-            bucket,
-            key_name
-        )
-        cur.execute("INSERT INTO photo VALUES (DEFAULT,%s,%s,1::bit(1),%s)",[key_name,object_url,album_id])
-        print(object_url)
-    except Exception as e:
-        conn.rollback()
-        raise HTTPException(status_code=500,detail=e.__str__())
-    conn.commit()
-    conn_pool.putconn(conn)
 
-    return JSONResponse(status_code=201, content={"message": "user created"})
+        bucket_location = s3_client.get_bucket_location(Bucket=bucket)
+        s3_client.upload_fileobj(io.BytesIO(f),bucket,key_name, ExtraArgs={'ContentType':mt});
+        object_url = ""
+        if bucket_location['LocationConstraint'] != None:
+            object_url = "https://s3-{0}.amazonaws.com/{1}/{2}".format(
+                bucket_location['LocationConstraint'],
+                bucket,
+                key_name
+            )
+        else:
+            object_url = "https://s3.amazonaws.com/{0}/{1}".format(
+                bucket,
+                key_name
+            )
+
+        cur.execute("""
+            INSERT INTO photo
+                (id_photo,name,description,link,isProfilePicture,id_user)
+            VALUES 
+                (DEFAULT,%s,%s,%s,1::bit(1),%s)
+            RETURNING id_photo
+        """,[key_name,"Foto de perfil",object_url,id_user])
+
+        query_results = cur.fetchall()
+        id_photo = query_results[0][0]
+
+        cur.execute("""
+            INSERT INTO tag_photo
+                (id_photo,id_tag)
+            VALUES
+                (%s,%s)
+        """,[id_photo,id_tag])
+        conn.commit()
+        conn_pool.putconn(conn)
+        return JSONResponse(status_code=201, content={"message": "user created"})
+    except Exception as e:
+        s3_client.delete_object(Bucket=bucket,Key=key_name)
+        conn.rollback()
+        conn_pool.putconn(conn)
+        print(e)
+        raise HTTPException(status_code=500,detail=str(e))
 
 @app.get('/get_user/{username}',status_code=200)
-def get_user(username:str) -> User:
+def get_user(username: str) -> classes.User:
     conn = conn_pool.getconn()
     if not conn:
         raise HTTPException(status_code=500,detail="can't connect to database")
     try:
         cur = conn.cursor()
-        cur.execute("SELECT id_user,username,name FROM userr WHERE username = %s;",[username])
+        cur.execute("SELECT id_user,username,name FROM usr WHERE username = %s;",[username])
         query_results = cur.fetchall()
         if len(query_results) == 0 :
             raise Exception("Could not find user in database")
-        usr = User(
+        usr = classes.User(
             id = int(query_results[0][0]),
             username = str(query_results[0][1]),
             name= str(query_results[0][2]),
-            profile_picture_url=""
+            profile_picture_url="",
+            tags = []
         )
-        cur.execute("SELECT link FROM photo JOIN album ON album.id_album = photo.id_album WHERE album.id_user = %s AND album.isProfilePictureAlbum = 1::bit(1) AND photo.isProfilePicture = 1::bit(1);",[usr.id])
+        cur.execute("SELECT link FROM photo WHERE id_user = %s AND isProfilePicture = 1::bit(1)",[usr.id])
         usr.profile_picture_url= str(cur.fetchall()[0][0])
+        tags = rekognition_client.detect_faces(
+            Image={
+                'S3Object': {
+                    'Bucket': bucket,
+                    'Name': usr.profile_picture_url[-39:]
+                }
+            },
+            Attributes=['AGE_RANGE','BEARD','EYEGLASSES','GENDER','MUSTACHE','SUNGLASSES']
+        )
+
+        for tag in tags['FaceDetails'][0]:
+            if tag == 'AgeRange':
+                usr.tags.append(f"{tags['FaceDetails'][0][tag]['Low']} - {tags['FaceDetails'][0][tag]['High']} años de edad")
+            elif tag == 'Beard':
+                usr.tags.append(f"{ 'Tiene Barba' if tags['FaceDetails'][0][tag]['Value'] else 'No tiene Barba'}")
+            elif tag == 'Eyeglasses':
+                usr.tags.append(f"{ 'Usa Lentes' if tags['FaceDetails'][0][tag]['Value'] else 'No Usa Lentes'}")
+            elif tag == 'Gender':
+                usr.tags.append(f"{ 'Hombre' if tags['FaceDetails'][0][tag]['Value'] == 'Male' else 'Mujer'}")
+            elif tag == 'Mustache':
+                usr.tags.append(f"{ 'Tiene Bigote' if tags['FaceDetails'][0][tag]['Value'] else 'No Tiene Bigote'}")
+            elif tag == 'SunGlasses':
+                usr.tags.append(f"{ 'Usa Lentes de Sol' if tags['FaceDetails'][0][tag]['Value'] else 'No Usa Lentes de Sol'}")
         conn_pool.putconn(conn)
         return usr
     except Exception as e:
+        conn_pool.putconn(conn)
         raise HTTPException(status_code=500,detail=e.__str__())
 
-@app.get('/get_album_list/{username}', status_code=200)
-def get_album_list(username:str)->AlbumList:
+@app.post('/upload_photo',status_code=201,responses={201: {"model": classes.Message}})
+def upload_photo(photo:classes.PhotoUpload):
     conn = conn_pool.getconn()
-    if not conn:
-        raise HTTPException(status_code=500,detail="can't connect to database")
-    try:
-        cur = conn.cursor()
-        cur.execute("SELECT album.id_album,album.name FROM album JOIN userr ON userr.id_user = album.id_user WHERE userr.username = %s;",[username])
-        query_results = cur.fetchall()
-        if len(query_results) == 0 :
-            raise Exception("Could not find user in database")
-        album_list = AlbumList(albums=[])
-        for album in query_results:
-            album_list.albums.append(Album(album_id=int(album[0]),album_name=str(album[1])))
-        return album_list
-    except Exception as e:
-        raise HTTPException(status_code=500,detail=e.__str__())
-
-@app.get('/get_album_photos/{id_album}',status_code=200)
-def get_album_photos(id_album:int) -> AlbumPhotos:
-    conn = conn_pool.getconn()
-    if not conn:
-        raise HTTPException(status_code=500,detail="can't connect to database")
-    try:
-        cur = conn.cursor()
-        cur.execute("SELECT id_photo,name,link FROM photo WHERE id_album = %s;",[id_album])
-        query_results = cur.fetchall()
-        photo_list = AlbumPhotos(album_id=id_album,photos=[])
-        for photo in query_results:
-            photo_list.photos.append(Photo(
-                photo_id=int(photo[0]),
-                photo_name=str(photo[1]),
-                photo_url=str(photo[2])
-            ))
-        return photo_list
-    except Exception as e:
-        raise HTTPException(status_code=500,detail=e.__str__())
-
-@app.post('/upload_photo',status_code=201,responses={201: {"model": Message}})
-def upload_photo(photo:PhotoUpload):
-    conn = conn_pool.getconn()
+    key_name = "Fotos_Publicadas/" + datetime.now().strftime('%Y_%m_%d_%H-%M-%S.%f')
     if not conn:
         raise HTTPException(status_code=500,detail="can't connect to database")
     try:
@@ -229,106 +199,160 @@ def upload_photo(photo:PhotoUpload):
         f = base64.b64decode(photo.photo_base64)
         mt = magic.from_buffer(f,mime=True)
         bucket_location = s3_client.get_bucket_location(Bucket=bucket)
-        key_name = "Fotos_Publicadas/" + datetime.now().strftime('%Y_%m_%d_%H-%M-%S.%f')
         s3_client.upload_fileobj(io.BytesIO(f),bucket,key_name, ExtraArgs={'ContentType':mt});
-        object_url = "https://s3-{0}.amazonaws.com/{1}/{2}".format(
-            bucket_location['LocationConstraint'],
-            bucket,
-            key_name
+        object_url = ""
+        if bucket_location['LocationConstraint'] != None:
+            object_url = "https://s3-{0}.amazonaws.com/{1}/{2}".format(
+                bucket_location['LocationConstraint'],
+                bucket,
+                key_name
+            )
+        else:
+            object_url = "https://s3.amazonaws.com/{0}/{1}".format(
+                bucket,
+                key_name
+            )
+        tags = rekognition_client.detect_labels(
+            Image={
+                "S3Object": {
+                    "Bucket": bucket,
+                    "Name": key_name
+                }
+            },
+            MinConfidence=70
         )
-        cur.execute("INSERT INTO photo VALUES (DEFAULT,%s,%s,0::bit(1),%s)",[photo.photo_name,object_url,photo.album_id])
+        cur.execute("""
+            INSERT INTO 
+                photo(id_photo,name,description,link,isProfilePicture,id_user)
+            VALUES 
+            (DEFAULT,%s,%s,%s,0::bit(1),%s)
+            RETURNING id_photo
+        """,[photo.photo_name,photo.photo_description,object_url,photo.user_id])
+        query_results = cur.fetchall()
+        id_photo = query_results[0][0]
+        image_tags = []
+        for tag in tags['Labels']:
+            if tag["Categories"][0]['Name'] != "Animals and Pets":
+                continue
+            cur.execute("""
+            INSERT INTO tag
+                (id_tag,name)
+            VALUES 
+                (DEFAULT,%s) 
+            ON CONFLICT(name) DO UPDATE
+                SET id_tag = tag.id_tag
+            RETURNING id_tag
+            """,[tag['Name']])
+            image_tags.append(tag['Name'])
+            query_results = cur.fetchall()
+            id_tag = query_results[0][0]
+            cur.execute("INSERT INTO tag_photo(id_photo,id_tag) VALUES (%s,%s)",[id_photo,id_tag])
+
+        #s3_client.delete_object(Bucket=bucket,Key=key_name)
+        #cur.execute("")
     except Exception as e:
+        s3_client.delete_object(Bucket=bucket,Key=key_name)
+        conn_pool.putconn(conn)
         conn.rollback()
         raise HTTPException(status_code=500,detail=e.__str__())
     conn.commit()
     conn_pool.putconn(conn)
     return JSONResponse(status_code=201, content={"message": "photo created"})
 
-@app.post('/create_album', status_code=201,responses={201: {"model": Message}})
-def create_album(album:AlbumCreation):
+@app.get('/get_album_list/{username}',status_code=200)
+def get_album_list(username:str) -> classes.AlbumList:
     conn = conn_pool.getconn()
     if not conn:
         raise HTTPException(status_code=500,detail="can't connect to database")
     try:
         cur = conn.cursor()
-        cur.execute("INSERT INTO album VALUES (DEFAULT,%s,%s,0::bit(1))",[album.album_name,album.user_id])
+        cur.execute("""
+            SELECT DISTINCT
+                tag.id_tag,tag.name
+            FROM photo
+            JOIN tag_photo ON photo.id_photo = tag_photo.id_photo
+            JOIN tag ON tag.id_tag = tag_photo.id_tag
+            JOIN usr ON photo.id_user = usr.id_user
+            WHERE usr.username = %s
+        """,[username])
+        query_results = cur.fetchall()
+        if len(query_results) == 0 :
+            raise Exception("Could not find user in database")
+        album_list = classes.AlbumList(albums=[])
+        for album in query_results:
+            album_list.albums.append(classes.Album(album_id=int(album[0]),album_name=str(album[1])))
+        conn_pool.putconn(conn)
+        return album_list
     except Exception as e:
-        conn.rollback()
+        conn_pool.putconn(conn)
         raise HTTPException(status_code=500,detail=e.__str__())
-    conn.commit()
-    conn_pool.putconn(conn)
-    return JSONResponse(status_code=201, content={"message": "album created"})
 
-@app.post('/delete_album', status_code=200,responses={200: {"model": Message}})
-def delete_album(album:AlbumDeletion):
+@app.get('/get_album_photos/{username}/{id_album}',status_code=200)
+def get_album_photos(username:str,id_album:int) -> classes.AlbumPhotos:
     conn = conn_pool.getconn()
     if not conn:
         raise HTTPException(status_code=500,detail="can't connect to database")
     try:
         cur = conn.cursor()
-        cur.execute("DELETE FROM album WHERE id_album = %s",[album.album_id])
+        cur.execute("""
+            SELECT 
+                photo.id_photo,photo.name,photo.description,photo.link
+            FROM photo
+            JOIN tag_photo ON photo.id_photo = tag_photo.id_photo
+            JOIN tag ON tag.id_tag = tag_photo.id_tag
+            JOIN usr ON photo.id_user = usr.id_user
+            WHERE usr.username = %s AND tag.id_tag = %s
+        """,[username,id_album])
+        query_results = cur.fetchall()
+        photo_list = classes.AlbumPhotos(album_id=id_album,photos=[])
+        for photo in query_results:
+            photo_list.photos.append(classes.Photo(
+                photo_id=int(photo[0]),
+                photo_name=str(photo[1]),
+                photo_desc=str(photo[2]),
+                photo_url=str(photo[3])
+            ))
+        conn_pool.putconn(conn)
+        return photo_list
     except Exception as e:
-        conn.rollback()
+        conn_pool.putconn(conn)
         raise HTTPException(status_code=500,detail=e.__str__())
-    conn.commit()
-    conn_pool.putconn(conn)
-    return JSONResponse(status_code=201, content={"message": "album deleted"})
 
-@app.post('/edit_album', status_code=200,responses={200: {"model": Message}})
-def edit_album(album:AlbumUpdate):
+@app.get('/photo/{id_photo}',status_code=200)
+def get_photo(id_photo:int) -> classes.Photo:
     conn = conn_pool.getconn()
     if not conn:
         raise HTTPException(status_code=500,detail="can't connect to database")
     try:
         cur = conn.cursor()
-        cur.execute("UPDATE album SET name = %s WHERE id_album = %s",[album.album_name, album.album_id])
-    except Exception as e:
-        conn.rollback()
-        raise HTTPException(status_code=500,detail=e.__str__())
-    conn.commit()
-    conn_pool.putconn(conn)
-    return JSONResponse(status_code=201, content={"message": "album updated"})
-
-@app.post('/update_profile', status_code=200,responses={200: {"model": Message}})
-def update_profile(user:UserUpdate):
-    conn = conn_pool.getconn()
-    if not conn:
-        raise HTTPException(status_code=500,detail="can't connect to database")
-    try:
-        cur = conn.cursor()
-
-        md5_pass = md5((user.password).encode('utf-8')).hexdigest()
-        cur.execute("SELECT * FROM userr WHERE id_user = %s AND password = %s",[user.user_id,md5_pass])
-        if len(cur.fetchall()) == 0:
-            raise Exception("Incorrect Password")
-        if user.new_username and user.new_username != "":
-            cur.execute("UPDATE userr SET username = %s WHERE id_user = %s",[user.new_username,user.user_id])
-        if user.new_name and user.new_name != "":
-            cur.execute("UPDATE userr SET name = %s WHERE id_user = %s",[user.new_name,user.user_id])
-        if user.new_photo_base64 and user.new_photo_base64 != "":
-            cur.execute("SELECT id_album FROM album WHERE id_user = %s AND isProfilePictureAlbum = 1::bit(1)",[user.user_id])
-            album_id = cur.fetchone()[0]
-            cur.execute("UPDATE photo SET isProfilePicture = 0::bit(1) WHERE isProfilePicture = 1::bit(1) AND id_album = %s", [album_id])
-            f = base64.b64decode(user.new_photo_base64)
-            mt = magic.from_buffer(f,mime=True)
-            bucket_location = s3_client.get_bucket_location(Bucket=bucket)
-            key_name = "Fotos_Perfil/" + datetime.now().strftime('%Y_%m_%d_%H-%M-%S.%f')
-            s3_client.upload_fileobj(io.BytesIO(f),bucket,key_name, ExtraArgs={'ContentType':mt});
-            object_url = "https://s3-{0}.amazonaws.com/{1}/{2}".format(
-                bucket_location['LocationConstraint'],
-                bucket,
-                key_name
+        cur.execute("SELECT name,description,link FROM photo WHERE id_photo = %s",[id_photo])
+        query_results = cur.fetchall()
+        if len(query_results) == 0 :
+            raise Exception("Could not find photo in database")
+        photo = classes.Photo(
+            photo_id=id_photo,
+            photo_name=str(query_results[0][0]),
+            photo_desc=str(query_results[0][1]),
+            photo_url=str(query_results[0][2]),
+        )
+        langs = ['es','fr','it','pt']
+        for lang in langs:
+            resp = translate_client.translate_text(
+                Text = photo.photo_desc,
+                SourceLanguageCode = 'auto',
+                TargetLanguageCode = lang
             )
-            cur.execute("INSERT INTO photo VALUES (DEFAULT,%s,%s,1::bit(1),%s)",[key_name,object_url,album_id])
+            if photo.photo_translations == None:
+                photo.photo_translations = []
+            photo.photo_translations.append(classes.DescTranslation(lang=lang,text=resp['TranslatedText']))
+        conn_pool.putconn(conn)
+        return photo
     except Exception as e:
-        conn.rollback()
+        conn_pool.putconn(conn)
         raise HTTPException(status_code=500,detail=e.__str__())
-    conn.commit()
-    conn_pool.putconn(conn)
-    return JSONResponse(status_code=201, content={"message": "user updated"})
 
 @app.post('/login', status_code=200)
-def login(creds:Login) -> LoginResponse:
+def login(creds:classes.Login) -> classes.LoginResponse:
     conn = conn_pool.getconn()
     if not conn:
         raise HTTPException(status_code=500,detail="can't connect to database")
@@ -337,8 +361,135 @@ def login(creds:Login) -> LoginResponse:
         md5_pass = md5((creds.password).encode('utf-8')).hexdigest()
         cur.execute("SELECT 0 FROM userr WHERE username = %s AND password = %s",[creds.username,md5_pass])
         if len(cur.fetchall()) == 0:
-            return LoginResponse(correct=False)
-        return LoginResponse(correct=True)
+            return classes.LoginResponse(correct=False)
+        conn_pool.putconn(conn)
+        return classes.LoginResponse(correct=True)
     except Exception as e:
-        conn.rollback()
+        conn_pool.putconn(conn)
         raise HTTPException(status_code=500,detail=e.__str__())
+
+@app.post('/login_photo', status_code=200)
+def login_photo(creds:classes.LoginPhoto) -> classes.LoginResponse:
+    conn = conn_pool.getconn()
+    if not conn:
+        raise HTTPException(status_code=500,detail="can't connect to database")
+    try:
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT
+                photo.link
+            FROM
+                photo
+            JOIN usr ON usr.id_user = photo.id_user
+            WHERE usr.username = %s AND photo.isProfilePicture = 1::bit(1)
+        """,[creds.username])
+        query_results = cur.fetchall()
+        if len(query_results) == 0:
+            return classes.LoginResponse(correct=False)
+        photo_s3 = query_results[0][0][-39:] # los ultimos 39 caracteres son el objeto de s3
+        photo_login = base64.b64decode(creds.photo_base64)
+
+        response = rekognition_client.compare_faces(
+            SourceImage = {
+                "S3Object": {
+                    "Bucket": bucket,
+                    "Name": photo_s3
+                },    
+            },
+            TargetImage = {
+                "Bytes":photo_login
+            }
+        )
+        conn.rollback()
+        if len(response['FaceMatches']) == 0 or response['FaceMatches'][0]['Similarity'] < 90:
+            return classes.LoginResponse(correct=False)
+        return classes.LoginResponse(correct=True)
+    except InvalidParameterException as e:
+        conn_pool.putconn(conn)
+        print(e)
+        return classes.LoginResponse(correct=False)
+    except Exception as e:
+        conn_pool.putconn(conn)
+        raise HTTPException(status_code=500,detail=e.__str__())
+
+@app.post('/extract_text',status_code=200)
+def extract_text(photo:classes.PhotoText) -> classes.Message:
+    try:
+        response = rekognition_client.detect_text(
+            Image={
+                "Bytes": base64.b64decode(photo.photo_base64)
+            }
+        )
+        text = ""
+        for word in response['TextDetections']:
+            text += word['DetectedText'] + " "
+        return classes.Message(message=text)
+    except Exception as e:
+        raise HTTPException(status_code=500,detail=e.__str__())
+
+@app.post('/update_profile', status_code=200,responses={200: {"model": classes.Message}})
+def update_profile(user:classes.UserUpdate):
+    conn = conn_pool.getconn()
+    key_name = "Fotos_Perfil/" + datetime.now().strftime('%Y_%m_%d_%H-%M-%S.%f')
+    if not conn:
+        raise HTTPException(status_code=500,detail="can't connect to database")
+    try:
+        cur = conn.cursor()
+        md5_pass = md5((user.password).encode('utf-8')).hexdigest()
+        cur.execute("SELECT * FROM usr WHERE id_user = %s AND password = %s",[user.user_id,md5_pass])
+        if len(cur.fetchall()) == 0:
+            raise Exception("Incorrect Password")
+        if user.new_username and user.new_username != "":
+            cur.execute("UPDATE usr SET username = %s WHERE id_user = %s",[user.new_username,user.user_id])
+        if user.new_name and user.new_name != "":
+            cur.execute("UPDATE usr SET name = %s WHERE id_user = %s",[user.new_name,user.user_id])
+        if user.new_photo_base64 and user.new_photo_base64 != "":
+            cur.execute("""
+                SELECT tag.id_tag 
+                FROM photo
+                JOIN tag_photo ON photo.id_photo = tag_photo.id_photo
+                JOIN tag ON tag.id_tag = tag_photo.id_tag
+                WHERE photo.isProfilePicture = 1::bit(1)
+            """)
+            id_tag = cur.fetchone()[0]
+            cur.execute("UPDATE photo SET isProfilePicture = 0::bit(1) WHERE isProfilePicture = 1::bit(1) AND id_user= %s", [user.user_id])
+            f = base64.b64decode(user.new_photo_base64)
+            mt = magic.from_buffer(f,mime=True)
+            bucket_location = s3_client.get_bucket_location(Bucket=bucket)
+            s3_client.upload_fileobj(io.BytesIO(f),bucket,key_name, ExtraArgs={'ContentType':mt});
+            object_url = ""
+            if bucket_location['LocationConstraint'] != None:
+                object_url = "https://s3-{0}.amazonaws.com/{1}/{2}".format(
+                    bucket_location['LocationConstraint'],
+                    bucket,
+                    key_name
+                )
+            else:
+                object_url = "https://s3.amazonaws.com/{0}/{1}".format(
+                    bucket,
+                    key_name
+                )
+            cur.execute("""
+                INSERT INTO photo
+                    (id_photo,name,description,link,isProfilePicture,id_user)
+                VALUES 
+                    (DEFAULT,%s,%s,%s,1::bit(1),%s)
+                RETURNING id_photo
+            """,[key_name,"Foto de perfil",object_url,user.user_id])
+            query_results = cur.fetchall()
+            id_photo = query_results[0][0]
+
+            cur.execute("""
+                INSERT INTO tag_photo
+                    (id_photo,id_tag)
+                VALUES
+                    (%s,%s)
+            """,[id_photo,id_tag])
+    except Exception as e:
+        s3_client.delete_object(Bucket=bucket,Key=key_name)
+        conn.rollback()
+        conn_pool.putconn(conn)
+        raise HTTPException(status_code=500,detail=e.__str__())
+    conn.commit()
+    conn_pool.putconn(conn)
+    return JSONResponse(status_code=201, content={"message": "user updated"})
