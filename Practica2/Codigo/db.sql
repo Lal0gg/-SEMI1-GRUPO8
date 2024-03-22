@@ -1,38 +1,49 @@
-CREATE TABLE album
-(
-  id_album SERIAL NOT NULL,
-  name     TEXT NOT NULL,
-  id_user  INTEGER NOT NULL,
-  isProfilePictureAlbum BIT NOT NULL,
-  PRIMARY KEY (id_album)
-);
-
 CREATE TABLE photo
 (
-  id_photo         SERIAL NOT NULL,
-  name             TEXT NOT NULL,
-  link             TEXT NOT NULL,
-  isProfilePicture BIT     NOT NULL,
-  id_album         INTEGER NOT NULL,
-  PRIMARY KEY (id_photo)
+    id_photo            SERIAL NOT NULL,
+    name                TEXT   NOT NULL,
+    description         TEXT   NOT NULL,
+    link                TEXT   NOT NULL,
+    isProfilePicture    BIT    NOT NULL,
+    id_user             SERIAL NOT NULL,
+    PRIMARY KEY (id_photo)
 );
 
-CREATE TABLE userr
+CREATE TABLE tag
 (
-  id_user  SERIAL NOT NULL,
-  username TEXT  NOT NULL UNIQUE,
-  name     TEXT  NOT NULL,
-  password TEXT NOT NULL,
-  PRIMARY KEY (id_user)
+    id_tag SERIAL NOT NULL,
+    name   TEXT   NOT NULL,
+    PRIMARY KEY (id_tag),
+    UNIQUE (name)
 );
 
-ALTER TABLE album
-  ADD CONSTRAINT FK_user_TO_album
-    FOREIGN KEY (id_user)
-    REFERENCES userr (id_user);
+CREATE TABLE tag_photo
+(
+    id_photo INTEGER NOT NULL,
+    id_tag   INTEGER NOT NULL
+);
+
+CREATE TABLE usr
+(
+    id_user  SERIAL NOT NULL,
+    username TEXT   NOT NULL,
+    name     TEXT   NOT NULL,
+    password TEXT   NOT NULL,
+    PRIMARY KEY (id_user),
+    UNIQUE (username)
+);
 
 ALTER TABLE photo
-  ADD CONSTRAINT FK_album_TO_photo
-    FOREIGN KEY (id_album)
-    REFERENCES album (id_album) 
-    ON DELETE CASCADE;
+ADD CONSTRAINT FK_user_TO_photo
+FOREIGN KEY (id_user)
+REFERENCES usr (id_user);
+
+ALTER TABLE tag_photo
+ADD CONSTRAINT FK_photo_TO_tag_photo
+FOREIGN KEY (id_photo)
+REFERENCES photo (id_photo);
+
+ALTER TABLE tag_photo
+ADD CONSTRAINT FK_tag_TO_tag_photo
+FOREIGN KEY (id_tag)
+REFERENCES tag (id_tag);
