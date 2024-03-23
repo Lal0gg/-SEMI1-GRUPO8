@@ -17,6 +17,10 @@ export default function Form() {
         navigate('/perfil');
     };
 
+    const irFaceId = () => {
+        navigate('/faceid');
+    }
+
 
     const Usuario = (event) => {
         setUsername(event.target.value);
@@ -72,7 +76,6 @@ export default function Form() {
                             placeholder="Ingrese su usuario"
                             value={username}
                             onChange={Usuario}
-
                         />
                     </div>
                     <div>
@@ -85,9 +88,13 @@ export default function Form() {
                             onChange={Passsword}
                         />
                     </div>
-
+                    {/* login by pass */}
                     <div className="mt-8 flex flex-col gap-t-4">
                         <button onClick={Loggearse} className="active:scale-[.98] active:duration-75 transition-all hover:scale-[1.01] ease-in-out py-3 rounded-xl bg-blue-400 text-white text-lg font-bold">Ingrese</button>
+                    </div>
+                    {/* login by face id */}
+                    <div className="mt-8 flex flex-col gap-t-4">
+                        <button onClick={irFaceId} className="active:scale-[.98] active:duration-75 transition-all hover:scale-[1.01] ease-in-out py-3 rounded-xl bg-blue-400 text-white text-lg font-bold">Face id</button>
                     </div>
                     <div className="mt-8 flex justify-center items-center">
                         <p className="font-medium text-base">No tenes cuenta?</p>

@@ -7,6 +7,7 @@ import Perfil from '../pages/home.jsx'
 import Subir from '../pages/subirfoto.jsx'
 import Ver from '../pages/veralbum.jsx'
 import Editar from '../pages/editaralbum.jsx'
+import FaceId from '../pages/faceid.jsx'
 
 export const router = createBrowserRouter([
     {
@@ -40,5 +41,9 @@ export const router = createBrowserRouter([
     {
         path:"/editar",
         element:<Editar/>
+    },
+    {
+        path:"/faceid",
+        element:<FaceId/>
     }
 ]);
