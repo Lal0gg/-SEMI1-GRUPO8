@@ -44,7 +44,7 @@ export const ObtenerAlbumsFotos = async (id_album, username) => {
 }
 
 
-export const SubirFoto = async (user_id, photo_name, photo_base64, photo_description) => {
+export const SubirFoto = async (user_id, photo_name, photo_description,photo_base64) => {
     const res = await instance.post('/upload_photo', {
         user_id: user_id,
         photo_name: photo_name,

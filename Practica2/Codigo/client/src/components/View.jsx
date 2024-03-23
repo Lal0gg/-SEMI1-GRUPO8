@@ -78,7 +78,7 @@ export default function Prueba() {
       const album = await busquedaListaAlbum();
       if (album) {
         const albumId = album.album_id;
-        const res = await Service.ObtenerAlbumsFotos(albumId);
+        const res = await Service.ObtenerAlbumsFotos(albumId,username);
         const fotos = res.data.photos.map(photo => photo.photo_url);
         setImages(fotos);
       }

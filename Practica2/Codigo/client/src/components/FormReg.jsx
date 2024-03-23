@@ -23,7 +23,6 @@ export default function FormReg() {
         console.log("Agregando usuario");
         Service.CrearUsuario(formData.username, formData.fullName, formData.password, quitandoSplit(imageBase64))
             .then((res) => {
-                
                 console.log("Usuario creado");
                 const nuevoUsuario = {
                     username: formData.username,
@@ -35,8 +34,10 @@ export default function FormReg() {
                 console.log(localStorage.getItem('usuarioActual'))
                 window.alert("Usuario creado")
             }).catch((error) => {
-                console.log(error);
-                console.log("Usuario no creado");
+                if (error.response) {
+                    console.log(error.response.data);
+                    window.alert("Error al crear usuario")
+                }
             });
     }
         
