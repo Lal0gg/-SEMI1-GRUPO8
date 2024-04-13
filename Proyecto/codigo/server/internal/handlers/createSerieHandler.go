@@ -12,7 +12,7 @@ type NewSerie struct {
 	}
 }
 
-func (e *Env) CreateSerie(ctx context.Context, s *NewSerie) (*SuccessMessage, error) {
+func (e *Env) CreateSerieHandler(ctx context.Context, s *NewSerie) (*SuccessMessage, error) {
 	id, err := e.getUserId(ctx, s.Body.OwnerToken)
 	if err != nil {
 		return nil, err

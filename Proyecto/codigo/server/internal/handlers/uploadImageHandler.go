@@ -13,7 +13,6 @@ import (
 
 type ImageUpload struct {
 	Body struct {
-		UserToken     string `json:"userToken" doc:"Token de usuario generado por Cognito"`
 		SerieID       int    `json:"serieId" example:"1" doc:"ID de la serie a la que pertenece la imágen"`
 		ChapterNumber int    `json:"chapterNumber" example:"1" doc:"Número del capítulo a la que pertenece la imágen"`
 		PageNumber    int    `json:"pageNumber" example:"1" doc:"Número de página"`

@@ -28,8 +28,9 @@ func main() {
 	}
 
 	huma.Get(api, "/health", env.HealthHandler)
+	huma.Post(api, "/createSerie", env.CreateSerieHandler)
+	huma.Post(api, "/createChapter", env.CreateChaperHandler)
 	huma.Post(api, "/uploadImg", env.UploadImageHandler)
-	huma.Post(api, "/createSerie", env.CreateSerie)
 
 	stack := middleware.CreateStack(middleware.Logging)
 	server := &http.Server{
