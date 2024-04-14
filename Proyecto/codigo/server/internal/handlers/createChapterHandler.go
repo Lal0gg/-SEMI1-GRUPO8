@@ -14,6 +14,10 @@ func (e *Env) CreateChaperHandler(ctx context.Context, c *CreateChapter) (*Succe
 	if err != nil {
 		return nil, err
 	}
+	err = e.Store.InsertChapter(c.Body.SerieID, c.Body.ChapterNumber)
+	if err != nil {
+		return nil, err
+	}
 	msg := &SuccessMessage{}
 	msg.Body.Message = "Chapter created"
 	return msg, nil

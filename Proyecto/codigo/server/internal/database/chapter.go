@@ -13,9 +13,8 @@ func (db *DBClient) InsertChapter(ctx context.Context, serieId int, chapN int) e
 		`
 		INSERT INTO chapter (chapter_number, id_serie)
 		VALUES ($1, $2);
-		ON CONFLICT (chapter_number, id_serie) DO NOTHING;
 		`,
-		serieId, chapN,
+		chapN, serieId,
 	)
 	if err != nil {
 		return err

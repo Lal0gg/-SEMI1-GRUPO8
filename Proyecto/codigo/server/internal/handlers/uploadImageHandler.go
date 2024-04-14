@@ -30,25 +30,29 @@ func (e *Env) UploadImageHandler(ctx context.Context, i *ImageUpload) (*ImageLin
 	resp := &ImageLink{}
 	dec, err := base64.StdEncoding.DecodeString(i.Body.ImageB64)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Error al decodificar base64: %v", err)
 	}
 	mtype := mimetype.Detect(dec)
-	if !mtype.Is("image") {
-		return nil, fmt.Errorf("%s no es tipo de imagen", mtype.String())
-	}
 	keyname := fmt.Sprintf(
 		"series/%v/ch-%v/%v%s",
 		i.Body.SerieID, i.Body.ChapterNumber, i.Body.PageNumber, mtype.Extension(),
 	)
 	_, err = e.S3Client.PutObject(ctx, &s3.PutObjectInput{
-		Bucket:      aws.String("proyecto-semi1-g8"),
+		Bucket:      aws.String("proyecto-semi-g8"),
 		Key:         aws.String(keyname),
 		Body:        bytes.NewReader(dec),
 		ContentType: aws.String(mtype.String()),
 	})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Error al subir imagen a S3: %v", err)
 	}
-	resp.Body.S3Url = fmt.Sprintf("https://proyecto-semi1-g8.s3.amazonaws.com/%s", keyname)
+	s3Url := fmt.Sprintf("https://proyecto-semi-g8.s3.us-east-2.amazonaws.com/%s", keyname)
+	err = e.Store.AddPageToChapter(
+		i.Body.SerieID, i.Body.ChapterNumber, i.Body.PageNumber, s3Url,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("Error al agregar página a capítulo: %v", err)
+	}
+	resp.Body.S3Url = s3Url
 	return resp, nil
 }

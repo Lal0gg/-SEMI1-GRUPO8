@@ -32,6 +32,10 @@ func main() {
 	huma.Post(api, "/createChapter", env.CreateChaperHandler)
 	huma.Post(api, "/uploadImg", env.UploadImageHandler)
 
+	huma.Get(api, "/serie/{idSerie}", env.GetSeriesChapterNumberHandler)
+	huma.Get(api, "/serie/{idSerie}/ch/{chaptNum}", env.GetChapterHandler)
+	huma.Get(api, "/getSeries", env.GetAllSeriesHandler)
+
 	stack := middleware.CreateStack(middleware.Logging)
 	server := &http.Server{
 		Addr:         ":8080",

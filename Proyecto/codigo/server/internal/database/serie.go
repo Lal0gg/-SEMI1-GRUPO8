@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+	"fmt"
 )
 
 func (db *DBClient) CreateSerie(ctx context.Context, name string, description string, userId *int) error {
@@ -27,4 +28,28 @@ func (db *DBClient) CreateSerie(ctx context.Context, name string, description st
 
 	err = tx.Commit()
 	return err
+}
+
+// Que cargue todas, ahora mismo no hay tiempo para implentar por rangos
+func (db *DBClient) GetSeries(ctx context.Context) (*map[int]map[string]string, error) {
+	row, err := db.QueryContext(ctx, "SELECT id_serie,name_serie, descr FROM serie")
+	if err != nil {
+		return nil, err
+	}
+	seriesMap := make(map[int]map[string]string)
+	for row.Next() {
+		var id int
+		var name string
+		var description string
+		fmt.Println(row)
+		err := row.Scan(&id, &name, &description)
+		if err != nil {
+			return nil, err
+		}
+		innerMap := make(map[string]string)
+		innerMap["name"] = name
+		innerMap["description"] = description
+		seriesMap[id] = innerMap
+	}
+	return &seriesMap, nil
 }

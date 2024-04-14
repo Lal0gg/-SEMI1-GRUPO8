@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"proj/server/internal/database"
+	"proj/server/internal/store"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider"
@@ -17,6 +18,7 @@ type Env struct {
 	S3Client         *s3.Client
 	CognitooIdClient *cognitoidentityprovider.Client
 	DB               *database.DBClient
+	Store            *store.Store
 }
 
 func NewEnv(cfg aws.Config) (*Env, error) {
@@ -40,10 +42,23 @@ func NewEnv(cfg aws.Config) (*Env, error) {
 		return nil, err
 	}
 
+	store, err := store.OpenCloverDB("clover.db")
+	err = store.Init()
+	if err != nil {
+		return nil, err
+	}
+
 	return &Env{
 		EnvVar:           make(map[string]string),
 		S3Client:         s3.NewFromConfig(cfg),
 		CognitooIdClient: cognitoidentityprovider.NewFromConfig(cfg),
 		DB:               dbClient,
+		Store:            store,
 	}, nil
+}
+
+type SuccessMessage struct {
+	Body struct {
+		Message string `json:"message" example:"La serie se ha creado exitosamente" doc:"Mensaje de éxito"`
+	}
 }
