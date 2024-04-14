@@ -63,11 +63,11 @@ PostgreSQL (en RDS), al igual que guardan imágenes en un bucket de s3.
 #### Login
 ![login](./img/login.png)
 
-#### Login
-![login](./imgdoc/faceid.png)
-
 #### Registro
 ![registro](./img/editarperfil.png)
+
+#### Faceid
+![registro](./imgdoc/faceid.png)
 
 #### Perfil
 ![perfil](./img/perfil.png)
@@ -81,4 +81,5 @@ PostgreSQL (en RDS), al igual que guardan imágenes en un bucket de s3.
 #### Subir Foto
 ![subir](./img/subirfoto.png)
 
-
+#### Detalles 
+![subir](./img/Detalles.png)
