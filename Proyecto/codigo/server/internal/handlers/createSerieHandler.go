@@ -8,7 +8,7 @@ type NewSerie struct {
 	Body struct {
 		Name        string  `json:"name" example:"Franken Fran" doc:"Nombre de la serie"`
 		Description string  `json:"description" example:"Serie de humor oscuro sobre los experimentos de Fran Madaraki" doc:"Descripción de la serie"`
-		OwnerToken  *string `json:"ownerToken"  doc:"Token del usuario dueño, si no se envía la serie es pública" required:"false"`
+		OwnerToken  *string `json:"ownerToken"  doc:"Token del usuario dueño, si no se envía la serie es pública" required:"false" example:"AAAAAA"`
 	}
 }
 
