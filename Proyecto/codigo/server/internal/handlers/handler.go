@@ -8,6 +8,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider"
+	"github.com/aws/aws-sdk-go-v2/service/rekognition"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
@@ -17,6 +18,7 @@ type Env struct {
 	EnvVar           map[string]string
 	S3Client         *s3.Client
 	CognitooIdClient *cognitoidentityprovider.Client
+	RekogClient      *rekognition.Client
 	DB               *database.DBClient
 	Store            *store.Store
 }
@@ -52,6 +54,7 @@ func NewEnv(cfg aws.Config) (*Env, error) {
 		EnvVar:           make(map[string]string),
 		S3Client:         s3.NewFromConfig(cfg),
 		CognitooIdClient: cognitoidentityprovider.NewFromConfig(cfg),
+		RekogClient:      rekognition.NewFromConfig(cfg),
 		DB:               dbClient,
 		Store:            store,
 	}, nil

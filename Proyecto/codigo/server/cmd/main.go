@@ -27,14 +27,76 @@ func main() {
 		panic(err)
 	}
 
-	huma.Get(api, "/health", env.HealthHandler)
-	huma.Post(api, "/createSerie", env.CreateSerieHandler)
-	huma.Post(api, "/createChapter", env.CreateChaperHandler)
-	huma.Post(api, "/uploadImg", env.UploadImageHandler)
+	huma.Register(api, huma.Operation{
+		OperationID: "HealthCheck",
+		Method:      http.MethodGet,
+		Path:        "/health",
+		Summary:     "Health check",
+	}, env.HealthHandler)
 
-	huma.Get(api, "/serie/{idSerie}", env.GetSeriesChapterNumberHandler)
-	huma.Get(api, "/serie/{idSerie}/ch/{chaptNum}", env.GetChapterHandler)
-	huma.Get(api, "/getSeries", env.GetAllSeriesHandler)
+	huma.Register(api, huma.Operation{
+		OperationID: "CreateSerie",
+		Method:      http.MethodPost,
+		Path:        "/createSerie",
+		Summary:     "Crear serie",
+		Description: "Crear una nueva serie, esta puede ser pública o privada dependiendo de si se le envía un token de acceso",
+	}, env.CreateSerieHandler)
+
+	huma.Register(api, huma.Operation{
+		OperationID: "CreateChapter",
+		Method:      http.MethodPost,
+		Path:        "/createChapter",
+		Summary:     "Crear capítulo",
+		Description: "Crear un nuevo capítulo en una serie ya existente",
+	}, env.CreateChaperHandler)
+
+	huma.Register(api, huma.Operation{
+		OperationID: "UploadImg",
+		Method:      http.MethodPost,
+		Path:        "/uploadImg",
+		Summary:     "Subir imagen de capítulo",
+		Description: "Subir una imagen que será parte de un capítulo",
+	}, env.UploadImageHandler)
+
+	huma.Register(api, huma.Operation{
+		OperationID: "GetSeriesChapterNumber",
+		Method:      http.MethodGet,
+		Path:        "/serie/{idSerie}",
+		Summary:     "Obtener número de capítulos de una serie",
+		Description: "Obtener el número de capítulos que tiene una serie",
+	}, env.GetSeriesChapterNumberHandler)
+
+	huma.Register(api, huma.Operation{
+		OperationID: "GetChapter",
+		Method:      http.MethodGet,
+		Path:        "/serie/{idSerie}/ch/{chaptNum}",
+		Summary:     "Obtener capítulo",
+		Description: "Obtener un capítulo específico de una serie",
+	}, env.GetChapterHandler)
+
+	huma.Register(api, huma.Operation{
+		OperationID: "GetSeries",
+		Method:      http.MethodGet,
+		Path:        "/getSeries",
+		Summary:     "Obtener series",
+		Description: "Obtener todas las series públicas que existen en la base de datos",
+	}, env.GetAllSeriesHandler)
+
+	huma.Register(api, huma.Operation{
+		OperationID: "GetPrivateSeries",
+		Method:      http.MethodGet,
+		Path:        "/getPrivateSerie",
+		Summary:     "Obtener series privadas",
+		Description: "Obtener las series privadas que pertenecen a un usuario específico",
+	}, env.GetPrivateSeriesHandler)
+
+	huma.Register(api, huma.Operation{
+		OperationID: "GetTranscription",
+		Method:      http.MethodPost,
+		Path:        "/GetTranscription",
+		Summary:     "Obtener transcripción y traducción",
+		Description: "Obtiene la transcripción y traducción a algún lenguaje de el texto en una imágen",
+	}, env.TransciptPageHandler)
 
 	stack := middleware.CreateStack(middleware.Logging)
 	server := &http.Server{
