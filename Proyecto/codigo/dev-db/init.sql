@@ -15,6 +15,15 @@ CREATE TABLE note
     PRIMARY KEY (id_note)
 );
 
+CREATE TABLE comment
+(
+  id_comment SERIAL  NOT NULL,
+  content    TEXT    NOT NULL,
+  id_usr     INTEGER NOT NULL,
+  id_chapter INTEGER NOT NULL,
+  PRIMARY KEY (id_comment)
+);
+
 CREATE TABLE serie
 (
     id_serie    SERIAL NOT NULL,
@@ -60,5 +69,9 @@ ALTER TABLE note
 ADD CONSTRAINT note_range
 CHECK (value >= 1 AND value <= 10);
 
+ALTER TABLE comment
+ADD CONSTRAINT FK_usr_TO_comment
+FOREIGN KEY (id_usr)
+REFERENCES usr (id_usr);
 
 INSERT INTO usr (username) VALUES ('public');
