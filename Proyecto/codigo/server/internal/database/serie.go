@@ -31,8 +31,8 @@ func (db *DBClient) CreateSerie(ctx context.Context, name string, description st
 }
 
 // Que cargue todas, ahora mismo no hay tiempo para implentar por rangos
-func (db *DBClient) GetSeries(ctx context.Context) (*map[int]map[string]string, error) {
-	row, err := db.QueryContext(ctx, "SELECT id_serie,name_serie, descr FROM serie")
+func (db *DBClient) GetSeries(ctx context.Context, userID int) (*map[int]map[string]string, error) {
+	row, err := db.QueryContext(ctx, "SELECT id_serie,name_serie, descr FROM serie WHERE id_usr = $1", userID)
 	if err != nil {
 		return nil, err
 	}
