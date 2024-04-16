@@ -8,8 +8,10 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider"
+	"github.com/aws/aws-sdk-go-v2/service/polly"
 	"github.com/aws/aws-sdk-go-v2/service/rekognition"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/aws/aws-sdk-go-v2/service/translate"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
@@ -19,8 +21,11 @@ type Env struct {
 	S3Client         *s3.Client
 	CognitooIdClient *cognitoidentityprovider.Client
 	RekogClient      *rekognition.Client
+	TranslateClient  *translate.Client
+	PollyClient      *polly.Client
 	DB               *database.DBClient
 	Store            *store.Store
+	PollyKV          *store.KVStore
 }
 
 func NewEnv(cfg aws.Config) (*Env, error) {
@@ -44,8 +49,13 @@ func NewEnv(cfg aws.Config) (*Env, error) {
 		return nil, err
 	}
 
-	store, err := store.OpenCloverDB("clover.db")
-	err = store.Init()
+	st, err := store.OpenCloverDB("clover.db")
+	err = st.Init()
+	if err != nil {
+		return nil, err
+	}
+
+	pollyStore, err := store.OpenKVStore("polly.db")
 	if err != nil {
 		return nil, err
 	}
@@ -55,8 +65,11 @@ func NewEnv(cfg aws.Config) (*Env, error) {
 		S3Client:         s3.NewFromConfig(cfg),
 		CognitooIdClient: cognitoidentityprovider.NewFromConfig(cfg),
 		RekogClient:      rekognition.NewFromConfig(cfg),
+		TranslateClient:  translate.NewFromConfig(cfg),
+		PollyClient:      polly.NewFromConfig(cfg),
 		DB:               dbClient,
-		Store:            store,
+		Store:            st,
+		PollyKV:          pollyStore,
 	}, nil
 }
 
