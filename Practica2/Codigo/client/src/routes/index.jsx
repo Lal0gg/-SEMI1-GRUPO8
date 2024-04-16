@@ -9,6 +9,7 @@ import Ver from '../pages/veralbum.jsx'
 import Editar from '../pages/editaralbum.jsx'
 import FaceId from '../pages/faceid.jsx'
 import ExtractedText from '../pages/extractedText.jsx'
+import Detalles from '../pages/detalles.jsx'
 
 export const router = createBrowserRouter([
     {
@@ -50,5 +51,9 @@ export const router = createBrowserRouter([
     {
         path:"/extractedText",
         element:<ExtractedText/>
+    },
+    {
+        path:"/detalles",
+        element:<Detalles/>
     }
 ]);
