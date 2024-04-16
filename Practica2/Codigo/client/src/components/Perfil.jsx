@@ -61,7 +61,7 @@ export default function Perfil() {
                 <div className="absolute bottom-4 right-4">
                     <button onClick= {irView} className="bg-bluebell text-white px-4 py-2 rounded-md mr-4">Fotos</button>
                     <button onClick= {irUp} className="bg-bluebell text-white px-4 py-2 rounded-md mr-4">Subir Foto</button>
-                    <button onClick= {irEdit} className="bg-bluebell text-white px-4 py-2 rounded-md mr-4">Editar Albumes</button>
+                    {/* <button onClick= {irEdit} className="bg-bluebell text-white px-4 py-2 rounded-md mr-4">Editar Albumes</button> */}
                     <button onClick= {irExtractedText} className="bg-bluebell text-white px-4 py-2 rounded-md mr-4">Extraer Texto</button>
                 </div>
             </div>
