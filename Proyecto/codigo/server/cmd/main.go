@@ -94,9 +94,17 @@ func main() {
 		OperationID: "GetTranscription",
 		Method:      http.MethodPost,
 		Path:        "/GetTranscription",
-		Summary:     "Obtener transcripción y traducción",
-		Description: "Obtiene la transcripción y traducción a algún lenguaje de el texto en una imágen",
+		Summary:     "Obtener transcripción",
+		Description: "Obtiene la transcripción de el texto en una imágen",
 	}, env.TransciptPageHandler)
+
+	huma.Register(api, huma.Operation{
+		OperationID: "Translate",
+		Method:      http.MethodPost,
+		Path:        "/translate",
+		Summary:     "Traducción y Audio",
+		Description: "Traducción de un texto e generación de audio con un lenguaje específicado",
+	}, env.TranslateHandler)
 
 	stack := middleware.CreateStack(middleware.Logging)
 	server := &http.Server{
