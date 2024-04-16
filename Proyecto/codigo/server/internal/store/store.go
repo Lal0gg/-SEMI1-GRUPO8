@@ -14,6 +14,10 @@ type Store struct {
 	*clover.DB
 }
 
+type KVStore struct {
+	*badger.DB
+}
+
 type Doc = map[string]interface{}
 
 func OpenCloverDB(path string) (*Store, error) {
@@ -95,4 +99,39 @@ func (s *Store) GetSerieAllChapterNumber(idSerie int) (*[]int, error) {
 		docsMaps = append(docsMaps, chapInt)
 	}
 	return &docsMaps, nil
+}
+
+func OpenKVStore(path string) (*KVStore, error) {
+	opts := badger.DefaultOptions(path)
+	opts.Logger = nil
+	instance, err := badger.Open(opts)
+	if err != nil {
+		return nil, err
+	}
+	return &KVStore{instance}, nil
+}
+
+func (k *KVStore) Get(key string) (*string, error) {
+	var retVal *string
+	retVal = nil
+	err := k.View(func(txn *badger.Txn) error {
+		item, err := txn.Get([]byte(key))
+		if err != nil {
+			return err
+		}
+		valCopy, err := item.ValueCopy(nil)
+		if err != nil {
+			return nil
+		}
+		retVal = new(string)
+		*retVal = string(valCopy)
+		return nil
+	})
+	return retVal, err
+}
+
+func (k *KVStore) Set(key string, value string) error {
+	return k.Update(func(txn *badger.Txn) error {
+		return txn.Set([]byte(key), []byte(value))
+	})
 }
