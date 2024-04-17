@@ -106,6 +106,14 @@ func main() {
 		Description: "Traducción de un texto e generación de audio con un lenguaje específicado",
 	}, env.TranslateHandler)
 
+	huma.Register(api, huma.Operation{
+		OperationID: "FollowSerie",
+		Method:      http.MethodPost,
+		Path:        "/followSerie",
+		Summary:     "Seguir Serie",
+		Description: "Seguir serie para recibir notificaciones de nuevos capítulos por correo",
+	}, env.FollowSerieHandler)
+
 	stack := middleware.CreateStack(middleware.Logging)
 	server := &http.Server{
 		Addr:         ":8080",

@@ -63,7 +63,6 @@ func (s *Store) InsertChapter(idSerie int, chapNum int) error {
 
 func (s *Store) AddPageToChapter(idSerie int, chapNum int, pageNum int, url string) error {
 	newPage := make(map[string]interface{})
-	fmt.Printf("%v\n", pageNum)
 	newPage[fmt.Sprintf("%v", pageNum)] = url
 	criteria := cq.Field("idSerie").Eq(idSerie).And(cq.Field("chapNum").Eq(chapNum))
 	err := s.Update(
