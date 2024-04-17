@@ -2,6 +2,11 @@ package handlers
 
 import (
 	"context"
+	"fmt"
+	"log"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/sns"
 )
 
 type NewSerie struct {
@@ -17,9 +22,18 @@ func (e *Env) CreateSerieHandler(ctx context.Context, s *NewSerie) (*SuccessMess
 	if err != nil {
 		return nil, err
 	}
-	err = e.DB.CreateSerie(ctx, s.Body.Name, s.Body.Description, id)
+	idSerie, err := e.DB.CreateSerie(ctx, s.Body.Name, s.Body.Description, id)
 	if err != nil {
 		return nil, err
+	}
+	topic, err := e.SNSClient.CreateTopic(ctx, &sns.CreateTopicInput{Name: aws.String(fmt.Sprintf("%v", *idSerie))})
+	if err != nil {
+		log.Println("Error al crear el topic", err)
+	} else {
+		err := e.TopicsKV.Set(fmt.Sprintf("%v", *idSerie), *topic.TopicArn)
+		if err != nil {
+			log.Println("Error al guardar el topic", err)
+		}
 	}
 	msg := &SuccessMessage{}
 	msg.Body.Message = "La serie se ha creado exitosamente"
