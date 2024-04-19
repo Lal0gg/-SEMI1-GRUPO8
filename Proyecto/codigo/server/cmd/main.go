@@ -13,7 +13,6 @@ import (
 )
 
 func main() {
-
 	router := http.NewServeMux()
 
 	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion("us-east-2"))
@@ -113,6 +112,14 @@ func main() {
 		Summary:     "Seguir Serie",
 		Description: "Seguir serie para recibir notificaciones de nuevos capítulos por correo",
 	}, env.FollowSerieHandler)
+
+	huma.Register(api, huma.Operation{
+		OperationID: "UploadCover",
+		Method:      http.MethodPost,
+		Path:        "/uploadCover",
+		Summary:     "Subir/Actualizar portada",
+		Description: "Subir o actualizar una portada para una serie ya existente (no revisa que dicha serie exista, simplemente sube la imagen)",
+	}, env.UploadCoverHandler)
 
 	stack := middleware.CreateStack(middleware.Logging)
 	server := &http.Server{

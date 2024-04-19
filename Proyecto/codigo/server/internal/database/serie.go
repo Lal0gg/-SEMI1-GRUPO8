@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+	"fmt"
 )
 
 func (db *DBClient) CreateSerie(ctx context.Context, name string, description string, userId *int) (*int, error) {
@@ -58,6 +59,7 @@ func (db *DBClient) GetSeries(ctx context.Context, userID int) (*map[int]map[str
 		innerMap := make(map[string]string)
 		innerMap["name"] = name
 		innerMap["description"] = description
+		innerMap["coverUrl"] = fmt.Sprintf("https://proyecto-semi-g8.s3.us-east-2.amazonaws.com/series/%v/cover", id)
 		seriesMap[id] = innerMap
 	}
 	return &seriesMap, nil
