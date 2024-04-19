@@ -56,3 +56,28 @@ func (e *Env) UploadImageHandler(ctx context.Context, i *ImageUpload) (*ImageLin
 	resp.Body.S3Url = s3Url
 	return resp, nil
 }
+
+func (e *Env) uploadGeneric(ctx context.Context, imageb64 *string, path string) (*string, error) {
+	if imageb64 == nil {
+		return nil, nil
+	}
+	dec, err := base64.StdEncoding.DecodeString(*imageb64)
+	if err != nil {
+		return nil, fmt.Errorf("Error al decodificar base64: %v", err)
+	}
+	mtype := mimetype.Detect(dec)
+	keyname := fmt.Sprintf("%s", path)
+	_, err = e.S3Client.PutObject(ctx, &s3.PutObjectInput{
+		Bucket:      aws.String("proyecto-semi-g8"),
+		Key:         aws.String(keyname),
+		Body:        bytes.NewReader(dec),
+		ContentType: aws.String(mtype.String()),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("Error al subir imagen a S3: %v", err)
+	}
+	retUrl := aws.String(
+		fmt.Sprintf("https://proyecto-semi-g8.s3.us-east-2.amazonaws.com/%s", keyname),
+	)
+	return retUrl, nil
+}
