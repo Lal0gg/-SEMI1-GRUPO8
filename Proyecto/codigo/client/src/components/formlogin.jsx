@@ -24,8 +24,22 @@ export default function FormLogin() {
 
 
     const Loggearse = async () => {
-        const res = await Service.Login(username, password);
-        console.log("soy el response de login ", res.data)
+        console.log("Loggeandose...")
+        Service.Login(username, password).then((res) => {
+            console.log("soy el response de login ", res.data)
+            const nuevoUsuario = {
+                username: username,
+                password: password,
+                token: res.data.AccessToken
+            }
+            localStorage.setItem('usuario', JSON.stringify(nuevoUsuario));
+            alert("Bienvenido " + username)
+        }).catch((error) => {
+            console.error(error);
+            if (error.response.status === 500) {
+                alert("Usuario o contraseña incorrecta")
+            }
+        });
     }
 
 

@@ -15,16 +15,12 @@ const instance2 = axios.create({
 
 
 export const Login = async (username, password) => {
-    try {
         const res = await instance.post('/login', {
             username: username,
             password: password 
         });
         console.log("soy el response de login ", res.data)
         return res;
-    } catch (error) {
-        console.error(error);
-    }
 }
 
 
