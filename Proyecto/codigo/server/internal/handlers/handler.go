@@ -11,6 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/polly"
 	"github.com/aws/aws-sdk-go-v2/service/rekognition"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/aws/aws-sdk-go-v2/service/sns"
 	"github.com/aws/aws-sdk-go-v2/service/translate"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
@@ -23,9 +24,11 @@ type Env struct {
 	RekogClient      *rekognition.Client
 	TranslateClient  *translate.Client
 	PollyClient      *polly.Client
+	SNSClient        *sns.Client
 	DB               *database.DBClient
 	Store            *store.Store
 	PollyKV          *store.KVStore
+	TopicsKV         *store.KVStore
 }
 
 func NewEnv(cfg aws.Config) (*Env, error) {
@@ -60,6 +63,11 @@ func NewEnv(cfg aws.Config) (*Env, error) {
 		return nil, err
 	}
 
+	topicStore, err := store.OpenKVStore("topics.db")
+	if err != nil {
+		return nil, err
+	}
+
 	return &Env{
 		EnvVar:           make(map[string]string),
 		S3Client:         s3.NewFromConfig(cfg),
@@ -67,9 +75,11 @@ func NewEnv(cfg aws.Config) (*Env, error) {
 		RekogClient:      rekognition.NewFromConfig(cfg),
 		TranslateClient:  translate.NewFromConfig(cfg),
 		PollyClient:      polly.NewFromConfig(cfg),
+		SNSClient:        sns.NewFromConfig(cfg),
 		DB:               dbClient,
 		Store:            st,
 		PollyKV:          pollyStore,
+		TopicsKV:         topicStore,
 	}, nil
 }
 
