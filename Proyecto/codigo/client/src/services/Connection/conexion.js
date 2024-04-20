@@ -23,4 +23,19 @@ export const Login = async (username, password) => {
         return res;
 }
 
+export const AddUser = async (username,password,email) => {
+    const res = await instance.post('/adduser', {
+        username: username,
+        password: password,
+        email: email
+    });
+    console.log("soy el response de login ", res.data)
+    return res;
+}
 
+
+export const GetSeries = async () => {
+    const res = await instance2.get('/getSeries');
+    console.log("soy el response de series ", res.data)
+    return res;
+}
