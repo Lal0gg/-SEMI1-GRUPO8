@@ -3,7 +3,7 @@ import axios from 'axios'
 
 //API PARA LOGGEARSE
 const instance = axios.create({
-    baseURL: 'https://z2pv465v88.execute-api.us-east-1.amazonaws.com/'
+    baseURL: 'https://z2pv465v88.execute-api.us-east-1.amazonaws.com/test'
 });
 
 
@@ -12,3 +12,19 @@ const instance = axios.create({
 const instance2 = axios.create({
     baseURL: 'https://m1.tailde98b.ts.net/'
 });
+
+
+export const Login = async (username, password) => {
+    try {
+        const res = await instance.post('/login', {
+            username: username,
+            password: password 
+        });
+        console.log("soy el response de login ", res.data)
+        return res;
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+
