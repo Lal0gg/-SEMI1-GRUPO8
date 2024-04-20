@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import React from 'react';
+import Service from '../services/Service';
 
 
 
@@ -20,6 +21,16 @@ export default function FormLogin() {
     const Passsword = (event) => {
         setPassword(event.target.value);
     }
+
+
+    const Loggearse = async () => {
+        const res = await Service.Login(username, password);
+        console.log("soy el response de login ", res.data)
+    }
+
+
+
+
     return (
         <>
             <div className="bg-white px-12 py-20 rounded-3xl border-gray-100">
@@ -47,7 +58,7 @@ export default function FormLogin() {
                     </div>
                     {/* login by pass */}
                     <div className="mt-8 flex flex-col gap-t-4">
-                        <button onClick={null} className="active:scale-[.98] active:duration-75 transition-all hover:scale-[1.01] ease-in-out py-3 rounded-xl bg-moradito3 text-white text-lg font-bold">Ingrese</button>
+                        <button onClick={Loggearse} className="active:scale-[.98] active:duration-75 transition-all hover:scale-[1.01] ease-in-out py-3 rounded-xl bg-moradito3 text-white text-lg font-bold">Ingrese</button>
                     </div>
                     <div className="mt-8 flex justify-center items-center">
                         <p className="font-medium text-base">No tenes cuenta?</p>
@@ -58,3 +69,5 @@ export default function FormLogin() {
         </>
     );
 }
+
+
