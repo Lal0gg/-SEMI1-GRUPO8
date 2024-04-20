@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import Foto from '../images/reg.jpeg';
+import Service from '../services/Service';
 
 
 export default function FormRegistro() {
@@ -20,6 +21,23 @@ export default function FormRegistro() {
     const handleSubmit = (e) => {
         e.preventDefault();
     }
+
+
+
+    const AddUser = async () => {
+        console.log("Agregando usuario...")
+        Service.AddUser(formData.username, formData.password,formData.fullName ).then((res) => {
+            console.log("soy el response de login ", res.data)
+        }).catch((error) => {
+            console.error(error);
+            if (error.response.status === 500) {
+                alert("Usuario o contraseña incorrecta")
+            }
+        });
+
+    }
+
+
     return (
         <>
             <div className='justify-center items-center '>
@@ -65,7 +83,7 @@ export default function FormRegistro() {
                                     onChange={handleChange}
                                 />
                             </div>
-                            <button onClick={null} type="button" className="w-full bg-moradito3 text-white py-2 px-4 rounded-md hover:bg-indigo-600 transition duration-300">Registrar</button>
+                            <button onClick={AddUser} type="button" className="w-full bg-moradito3 text-white py-2 px-4 rounded-md hover:bg-indigo-600 transition duration-300">Registrar</button>
                         </form>
                     </div>
                 </div>

@@ -22,6 +22,10 @@ export default function FormLogin() {
         setPassword(event.target.value);
     }
 
+    const irPageMainSeries = () => {
+        navigate('/main');
+    }
+
 
     const Loggearse = async () => {
         console.log("Loggeandose...")
@@ -34,6 +38,7 @@ export default function FormLogin() {
             }
             localStorage.setItem('usuario', JSON.stringify(nuevoUsuario));
             alert("Bienvenido " + username)
+            irPageMainSeries();
         }).catch((error) => {
             console.error(error);
             if (error.response.status === 500) {
