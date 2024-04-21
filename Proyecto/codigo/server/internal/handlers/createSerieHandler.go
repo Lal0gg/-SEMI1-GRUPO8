@@ -36,7 +36,7 @@ func (e *Env) CreateSerieHandler(ctx context.Context, s *NewSerie) (*SuccessMess
 			log.Println("Error al guardar el topic", err)
 		}
 	}
-	retUrl, err := e.uploadGeneric(ctx, s.Body.CoverB64, fmt.Sprintf("series/%v/cover", idSerie))
+	retUrl, err := e.uploadGeneric(ctx, s.Body.CoverB64, fmt.Sprintf("series/%v/cover", *idSerie))
 	if err != nil {
 		log.Println("Error al subir la imagen de portada", err)
 	}

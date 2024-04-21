@@ -121,7 +121,7 @@ func main() {
 		Description: "Subir o actualizar una portada para una serie ya existente (no revisa que dicha serie exista, simplemente sube la imagen)",
 	}, env.UploadCoverHandler)
 
-	stack := middleware.CreateStack(middleware.Logging)
+	stack := middleware.CreateStack(middleware.AllowCors, middleware.Logging)
 	server := &http.Server{
 		Addr:         ":8080",
 		Handler:      stack(router),
