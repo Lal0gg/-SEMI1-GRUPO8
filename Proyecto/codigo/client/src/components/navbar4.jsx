@@ -25,6 +25,10 @@ export default function NavBar4() {
         navigate('/registro');
     }
 
+    const irPaginaMain = () => {
+        navigate('/main');
+    }
+
     return (
         <>
             <nav className="fixed top-0 left-0 w-full  border-b-bluebell bg-gradient-to-b from-bluebell to-transparent dark:border-bluebell z-50">
@@ -57,6 +61,9 @@ export default function NavBar4() {
                                             <a onClick={irRegistro} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-indigo-950 dark:hover:text-white">Registrarse</a>
                                         </li>
                                     </ul>
+                                    <div className="py-1">
+                                        <a onClick={irPaginaMain} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-indigo-950  dark:text-gray-200 dark:hover:text-white">Mangas y Comics</a>
+                                    </div>
                                     <div className="py-1">
                                         <a onClick={irHome} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-indigo-950  dark:text-gray-200 dark:hover:text-white">Cerrar Sesion</a>
                                     </div>
