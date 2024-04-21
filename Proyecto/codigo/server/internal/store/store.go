@@ -61,6 +61,15 @@ func (s *Store) InsertChapter(idSerie int, chapNum int) error {
 	return err
 }
 
+func (s *Store) InsertComment(text string, id_chap int, id_user int) error {
+	doc := doc.NewDocument()
+	doc.Set("content", text)
+	doc.Set("id_usr", id_user)
+	doc.Set("id_chapter", id_chap)
+	_, err := s.InsertOne("comments", doc)
+	return err
+}
+
 func (s *Store) AddPageToChapter(idSerie int, chapNum int, pageNum int, url string) error {
 	newPage := make(map[string]interface{})
 	newPage[fmt.Sprintf("%v", pageNum)] = url
