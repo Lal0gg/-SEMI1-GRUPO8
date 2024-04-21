@@ -4,8 +4,7 @@ import Form from "../components/formsubirfotoprivate"
 export default function PageMainSeries() {
     return (
         <>
-            <NavBar4 />
-            <Form />
+
         </>
     )
 }

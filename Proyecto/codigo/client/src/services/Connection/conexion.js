@@ -65,7 +65,8 @@ export const CreateSerie = async (coverB64,description,name,ownerToken) => {
         description: description,
         name: name,
         ownerToken: ownerToken
-    });
+    }
+);
     console.log("soy el response de login ", res.data)
     return res;
 }
