@@ -4,6 +4,7 @@ import PaginaInicio from "../pages/pagehome";
 import PaginaLogin from "../pages/login";
 import PaginaRegistro from "../pages/registrar";
 import PaginaMainSeries from "../pages/pageMain";
+import PaginaPerfil from "../pages/perfilmanga";
 
 export const router = createBrowserRouter([
     {
@@ -21,5 +22,13 @@ export const router = createBrowserRouter([
     {
         path: "/main",
         element: <PaginaMainSeries />,
+    },
+    {
+        path: "/perfil",
+        element: <PaginaPerfil />,
+    },
+    {
+        path: "*",
+        element: <PaginaInicio />,
     },
 ]);

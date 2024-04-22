@@ -13,6 +13,9 @@ export default function FormLogin() {
         navigate('/registro');
     }
 
+    const irPerfil = () => {
+        navigate('/perfil');
+    }
 
     const Usuario = (event) => {
         setUsername(event.target.value);
@@ -38,7 +41,7 @@ export default function FormLogin() {
             }
             localStorage.setItem('usuario', JSON.stringify(nuevoUsuario));
             alert("Bienvenido " + username)
-            irPageMainSeries();
+            irPerfil();
         }).catch((error) => {
             console.error(error);
             if (error.response.status === 500) {
