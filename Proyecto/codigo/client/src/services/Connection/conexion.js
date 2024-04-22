@@ -68,6 +68,15 @@ export const CreateComment = async (text,ownerToken,chapterID) => {
     return res;
 }
 
+export const CreateNote = async (value,ownerToken,) => {
+    const res = await instance2.post('/createNote', {
+        value: value,
+        ownerToken: ownerToken,
+        idSerie: chapterID
+    });
+    console.log("soy el response de login ", res.data)
+    return res;
+}
 
 export const CreateSerie = async (coverB64,description,name,ownerToken) => {
     const res = await instance2.post('/createSerie', {
