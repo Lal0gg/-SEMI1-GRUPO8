@@ -4,7 +4,7 @@ import (
 	"context"
 )
 
-func (db *DBClient) InsertComment(ctx context.Context, text string, idchap *int, userId *int) error {
+func (db *DBClient) InsertComment(ctx context.Context, text string, idchap int, userId *int) error {
 	tx, err := db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
@@ -19,8 +19,8 @@ func (db *DBClient) InsertComment(ctx context.Context, text string, idchap *int,
 	defer tx.Rollback()
 	_, err = tx.ExecContext(
 		ctx,
-		`INSERT INTO comment (content, id_usr, id_chapter) VALUES ($1, $2, $3) returning id_comment;`,
-		text, idchap, id,
+		`INSERT INTO comment (content,id_usr,id_chapter) VALUES ($1, $2, $3);`,
+		text, id, idchap,
 	)
 	if err != nil {
 		return err
