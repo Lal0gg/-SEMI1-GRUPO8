@@ -143,3 +143,7 @@ mensajes a gran escala a través de diferentes canales y plataformas. SNS
 facilita la integración con otras aplicaciones y servicios de AWS, permitiendo
 la automatización de procesos y la implementación de arquitecturas de
 comunicación robustas y escalables.
+
+## Precio estimado de Proyecto
+
+Para un proyecto de esta Magnitud, que incluye desarrollo de software, diseño de interfaz de usuario, integración de funcionalidades avanzadas como el audio multilingüe, gestión de contenido personalizado, interacción social y características innovadoras adicionales, podría estimarse un costo que oscile entre los $50,000 y $100,000 dólares estadounidenses aproximadamente, siendo abierto a negociaciones.
