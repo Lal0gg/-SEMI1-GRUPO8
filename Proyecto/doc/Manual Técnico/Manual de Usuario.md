@@ -1,4 +1,4 @@
-# Manual técnico
+# Manual Usuario
  **Carnet** | **Nombre** |
 | ------ | ------ |
 | 201900647   | Eduardo Josué González Cifuentes  |
