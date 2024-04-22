@@ -121,6 +121,22 @@ func main() {
 		Description: "Subir o actualizar una portada para una serie ya existente (no revisa que dicha serie exista, simplemente sube la imagen)",
 	}, env.UploadCoverHandler)
 
+	huma.Register(api, huma.Operation{
+		OperationID: "CreateComment",
+		Method:      http.MethodPost,
+		Path:        "/createComment",
+		Summary:     "Crear comentario",
+		Description: "Crear un nuevo comentario en un capítulo",
+	}, env.CreateCommentHandler)
+
+	huma.Register(api, huma.Operation{
+		OperationID: "CreateNote",
+		Method:      http.MethodPost,
+		Path:        "/createNote",
+		Summary:     "Crear Nota",
+		Description: "Crea una nota de puntuación de la serie",
+	}, env.CreateNoteHandler)
+
 	stack := middleware.CreateStack(middleware.AllowCors, middleware.Logging)
 	server := &http.Server{
 		Addr:         ":8080",
