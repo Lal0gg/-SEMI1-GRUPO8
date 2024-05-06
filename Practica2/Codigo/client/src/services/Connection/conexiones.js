@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 const instance = axios.create({
-    baseURL: 'https://m1.tailde98b.ts.net'
+    baseURL: 'https://ip-10-0-10-0.tailde98b.ts.net/'
 });
 
 

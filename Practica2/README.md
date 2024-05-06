@@ -40,11 +40,28 @@ PostgreSQL (en RDS), al igual que guardan imágenes en un bucket de s3.
   realacionadas a s3; creación de buckets, subida y borrado de archivos,
   vaciado y elminiación de buckets.
 
+* Usuario para translate: se creó un usuario llamado `translate_user` con la política de
+  `AmazonTRANSLATEFullAccess`, que le permite realizar todas las acciones
+  realacionadas a translate; creación de lenguajes, subida de traducciones en español
+  inglés, francés y portugués.
+
+* Usuario para rekognition: se creó un usuario llamado `rekognition_user` con la política de
+  `AmazonREKOGNITIONFullAccess`, que le permite realizar todas las acciones
+  realacionadas a rekognition; para identificar el facial del usuario y comparación entre 
+  imagenes, reconocer animales.
+
+
+## Funciones de Amazon Rekognition implementadas
+* Análisis facial
+* Propiedades de imagen
+* Comparación de rostros
+* Texto en la imagen
+
 ## Capturas
 
 ### Buckets de S3
 
-![bucketfotos](./img/bucket_fotos.png)
+![bucketfotos](./imgdoc/s3.png)
 
 ### EC2
 
@@ -55,6 +72,11 @@ PostgreSQL (en RDS), al igual que guardan imágenes en un bucket de s3.
 ### Base de Datos RDS
 
 ![rds](./img/rds.png)
+
+### Base de Datos Translate
+
+### Base de Datos Rekognition
+
 
 ### Aplicación Web
 #### Home
@@ -70,16 +92,17 @@ PostgreSQL (en RDS), al igual que guardan imágenes en un bucket de s3.
 ![registro](./imgdoc/faceid.png)
 
 #### Perfil
-![perfil](./img/perfil.png)
+![perfil](./imgdoc/newperfil.png)
 
 #### Fotos
-![fotos](./img/fotos.png)
+![fotos](./imgdoc/photosanimal.png)
 
-#### Editar Albumes
-![editar](./img/editar.png)
 
 #### Subir Foto
 ![subir](./img/subirfoto.png)
 
 #### Detalles 
-![subir](./img/Detalles.png)
+![subir](./imgdoc/details.png)
+
+#### Extraer texto 
+![subir](./imgdoc/extractText.png)

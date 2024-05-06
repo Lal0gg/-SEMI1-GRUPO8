@@ -1,0 +1,7 @@
+*.json
+.env
+tmp/*
+test/*
+clover.db/*
+topics.db/*
+polly.db/*

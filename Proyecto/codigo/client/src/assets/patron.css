@@ -1,0 +1,131 @@
+
+.xdd {
+    width: 100%;
+    height: 100%;
+    /* Add your background pattern here */
+    background: conic-gradient(at 50% 25%, #0000 75%, #a1e3f8 0),
+      conic-gradient(at 50% 25%, #0000 75%, #a1e3f8 0) 60px 60px,
+      conic-gradient(at 50% 25%, #0000 75%, #a1e3f8 0) calc(2 * 60px) calc(2 * 60px),
+      conic-gradient(at 50% 25%, #0000 75%, #a1e3f8 0) calc(3 * 60px) calc(3 * 60px),
+      repeating-linear-gradient(135deg, #adafff 0 12.5%, #474bff 0 25%);
+    background-size: calc(4 * 60px) calc(4 * 60px);
+  }
+  
+  .xdd2 {
+    width: 100%;
+    height: 100%;
+    --s: 140px;
+    /* control the size */
+  
+    --_g: #0000 52%, #170409
+      /* first color */
+      54% 57%, #0000 59%;
+    background: radial-gradient(farthest-side at -33.33% 50%, var(--_g)) 0 calc(var(--s) / 2),
+      radial-gradient(farthest-side at 50% 133.33%, var(--_g)) calc(var(--s) / 2) 0,
+      radial-gradient(farthest-side at 133.33% 50%, var(--_g)),
+      radial-gradient(farthest-side at 50% -33.33%, var(--_g)), #5b39f3;
+    /* second color */
+    background-size: calc(var(--s) / 4.667) var(--s),
+      var(--s) calc(var(--s) / 4.667);
+  }
+  
+  .xdd3 {
+    background-color: #e5e5f7;
+    opacity: 0.8;
+    background: linear-gradient(135deg, #444cf755 25%, transparent 25%) -40px 0/ 80px 80px, linear-gradient(225deg, #5b39f3 25%, transparent 25%) -40px 0/ 80px 80px, linear-gradient(315deg, #444cf755 25%, transparent 25%) 0px 0/ 80px 80px, linear-gradient(45deg, #5b39f3 25%, #e5e5f7 25%) 0px 0/ 80px 80px;
+  }
+  
+  .xdd4{
+    width: 100%;
+    height: 100%;
+    --s: 84px;
+    --c1: #678bc5;
+    --c2: #afa2f6;
+    --c3: #5b39f3;
+  
+    --_g: 0 120deg, #0000 0;
+    background: conic-gradient(
+        from 0deg at calc(500% / 6) calc(100% / 3),
+        var(--c3) var(--_g)
+      ),
+      conic-gradient(
+        from -120deg at calc(100% / 6) calc(100% / 3),
+        var(--c2) var(--_g)
+      ),
+      conic-gradient(
+        from 120deg at calc(100% / 3) calc(500% / 6),
+        var(--c1) var(--_g)
+      ),
+      conic-gradient(
+        from 120deg at calc(200% / 3) calc(500% / 6),
+        var(--c1) var(--_g)
+      ),
+      conic-gradient(
+        from -180deg at calc(100% / 3) 50%,
+        var(--c2) 60deg,
+        var(--c1) var(--_g)
+      ),
+      conic-gradient(
+        from 60deg at calc(200% / 3) 50%,
+        var(--c1) 60deg,
+        var(--c3) var(--_g)
+      ),
+      conic-gradient(
+        from -60deg at 50% calc(100% / 3),
+        var(--c1) 120deg,
+        var(--c2) 0 240deg,
+        var(--c3) 0
+      );
+    background-size: calc(var(--s) * 1.732) var(--s);
+  }
+  
+  .xdd5{
+    width: 100%;
+    height: 100%;
+    --s: 65px; /* control the size */
+    --c1: #dadee1;
+    --c2: #4a99b4;
+    --c3: #4fd4c3;
+  
+    --_c: 75%, var(--c3) 52.72deg, #0000 0;
+    --_g1: conic-gradient(from -116.36deg at 25% var(--_c));
+    --_g2: conic-gradient(from 63.43deg at 75% var(--_c));
+    background: var(--_g1), var(--_g1) calc(3 * var(--s)) calc(var(--s) / 2),
+      var(--_g2), var(--_g2) calc(3 * var(--s)) calc(var(--s) / 2),
+      conic-gradient(
+        var(--c2) 63.43deg,
+        var(--c1) 0 116.36deg,
+        var(--c2) 0 180deg,
+        var(--c1) 0 243.43deg,
+        var(--c2) 0 296.15deg,
+        var(--c1) 0
+      );
+    background-size: calc(2 * var(--s)) var(--s);
+  }
+  
+  .xdd6{
+    --bg: radial-gradient(#000 5%, #0000 6%);
+    --size: 3rem;
+    width: 100%;
+    height: 100%;
+    /* Add your background pattern here */
+    /* background-color: lightblue; */
+    background-image: radial-gradient(#000 5%, #0000 6%),
+      radial-gradient(#000 5%, #0000 6%);
+    background-position: 0 0, calc(var(--size) / 2) calc(var(--size) / 2);
+    background-size: var(--size) var(--size);
+  }
+  
+  .xdd7{
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        45deg,
+        transparent 33.33%,
+        rgba(255, 255, 255, 0.1) 33.33%,
+        rgba(255, 255, 255, 0.1) 66.66%,
+        transparent 66.66%
+      ),
+      lightblue;
+    background-size: 20px 20px;
+  }
