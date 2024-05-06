@@ -23,3 +23,18 @@ func (db *DBClient) InsertChapter(ctx context.Context, serieId int, chapN int) e
 	err = tx.Commit()
 	return err
 }
+
+func (db *DBClient) GetChapter(ctx context.Context, chapterID int) (*int, error) {
+
+	row := db.QueryRowContext(ctx, "SELECT id_chapter FROM chapter WHERE id_serie = $1", chapterID)
+	var idc *int
+	err := row.Scan(&idc)
+	return idc, err
+}
+
+func (db *DBClient) GetChapterIDFromSerie(ctx context.Context, serieId int, chapNum int) (*int, error) {
+	row := db.QueryRowContext(ctx, "SELECT id_chapter FROM chapter WHERE id_serie = $1 AND chapter_number = $2", serieId, chapNum)
+	var idc *int
+	err := row.Scan(&idc)
+	return idc, err
+}
