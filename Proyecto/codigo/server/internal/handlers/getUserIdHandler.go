@@ -22,9 +22,11 @@ func (e *Env) getUserId(ctx context.Context, token *string) (*int, error) {
 		return nil, err
 	}
 	usr, err := e.DB.GetUserID(ctx, *username.Username)
+
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println(usr)
 	return usr, nil
 }
 

@@ -31,3 +31,13 @@ func (db *DBClient) GetChapter(ctx context.Context, chapterID int) (*int, error)
 	err := row.Scan(&idc)
 	return idc, err
 }
+<<<<<<< HEAD
+=======
+
+func (db *DBClient) GetChapterIDFromSerie(ctx context.Context, serieId int, chapNum int) (*int, error) {
+	row := db.QueryRowContext(ctx, "SELECT id_chapter FROM chapter WHERE id_serie = $1 AND chapter_number = $2", serieId, chapNum)
+	var idc *int
+	err := row.Scan(&idc)
+	return idc, err
+}
+>>>>>>> Feature_Lalo

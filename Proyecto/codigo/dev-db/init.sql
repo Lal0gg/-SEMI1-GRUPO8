@@ -74,4 +74,9 @@ ADD CONSTRAINT FK_usr_TO_comment
 FOREIGN KEY (id_usr)
 REFERENCES usr (id_usr);
 
+ALTER TABLE comment
+ADD CONSTRAINT FK_chapter_TO_comment
+FOREIGN KEY (id_chapter)
+REFERENCES chapter (id_chapter);
+
 INSERT INTO usr (username) VALUES ('public');

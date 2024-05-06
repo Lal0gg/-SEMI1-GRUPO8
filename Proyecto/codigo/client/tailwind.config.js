@@ -10,6 +10,7 @@ export default {
         moradito2: '#9755B0',
         moradito3: '#8B4FF4',
       }
+      
     },
   },
   plugins: [],

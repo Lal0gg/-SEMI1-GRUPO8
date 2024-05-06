@@ -125,11 +125,27 @@ func main() {
 		OperationID: "CreateComment",
 		Method:      http.MethodPost,
 		Path:        "/createComment",
+<<<<<<< HEAD
 		Summary:     "Crear comentario",
 		Description: "Crear un nuevo comentario en un capítulo",
 	}, env.CreateCommentHandler)
 
 	huma.Register(api, huma.Operation{
+=======
+		Summary:     "Crear Comentario",
+		Description: "Crear un nuevo comentario en un capitulo",
+	}, env.CreateCommentHandler)
+
+	huma.Register(api, huma.Operation{
+		OperationID: "GetSerieComments",
+		Method:      http.MethodPost,
+		Path:        "/getSerieComments",
+		Summary:     "Obtener comentarios",
+		Description: "Obtener los comentarios de una serie",
+	}, env.GetCommentsHandler)
+
+	huma.Register(api, huma.Operation{
+>>>>>>> Feature_Lalo
 		OperationID: "CreateNote",
 		Method:      http.MethodPost,
 		Path:        "/createNote",
@@ -137,6 +153,17 @@ func main() {
 		Description: "Crea una nota de puntuación de la serie",
 	}, env.CreateNoteHandler)
 
+<<<<<<< HEAD
+=======
+	huma.Register(api, huma.Operation{
+		OperationID: "GetSeriesNotes",
+		Method:      http.MethodGet,
+		Path:        "/notes/{idSerie}",
+		Summary:     "Obtener notas dadas a una serie",
+		Description: "Obtener las notas que han sido dadas a una serie",
+	}, env.GetNotesHandler)
+
+>>>>>>> Feature_Lalo
 	stack := middleware.CreateStack(middleware.AllowCors, middleware.Logging)
 	server := &http.Server{
 		Addr:         ":8080",

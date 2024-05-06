@@ -13,6 +13,10 @@ const instance2 = axios.create({
     baseURL: 'https://m1.tailde98b.ts.net/'
 });
 
+// const instance2 = axios.create({
+//     baseURL: 'http://loadbalancer-proyecto-1448566859.us-east-2.elb.amazonaws.com/'
+// });
+
 
 export const Login = async (username, password) => {
         const res = await instance.post('/login', {
@@ -44,9 +48,11 @@ export const VerifiUser = async (username,confirmationCode) => {
 }
 
 export const GetTranscript = async (url) => {
-    const res = await instance2.post('/getTranscript', {
+    const res = await instance2.post('/GetTranscription', {
         url: url
     });
+    console.log("soy el response de transc ", res.data)
+    return res;
 }
 
 export const CreateChapter = async (chapterNumber,serieId) => {
@@ -58,6 +64,7 @@ export const CreateChapter = async (chapterNumber,serieId) => {
     return res;
 }
 
+<<<<<<< HEAD
 export const CreateComment = async (text,ownerToken,chapterID) => {
     const res = await instance2.post('/createComment', {
         text: text,
@@ -77,6 +84,30 @@ export const CreateNote = async (value,ownerToken,) => {
     console.log("soy el response de login ", res.data)
     return res;
 }
+=======
+export const CreateComment = async (chapNum, token, idSerie, comment) => {
+    const res = await instance2.post('/createComment', {
+        chapNum: chapNum,
+        ownerToken: token,
+        serieID: idSerie,
+        text: comment
+    });
+    console.log("soy el response de login comentario ", res.data)
+    return res;
+}
+
+
+export const  CreateNote = async (token,idSerie, valuee) => {
+    const res = await instance2.post('/createNote', {
+        ownerToken: token,
+        serieID: idSerie,
+        value: valuee
+    });
+    console.log("soy el response de login note ", res.data)
+    return res;
+}
+
+>>>>>>> Feature_Lalo
 
 export const CreateSerie = async (coverB64,description,name,ownerToken) => {
     const res = await instance2.post('/createSerie', {
@@ -97,8 +128,6 @@ export const FollowSerie  = async (accesToken,serieId) => {
     });
     console.log("soy el response de login ", res.data)
     return res;
-
-
 }
 
 export const GetSeriesPrivates = async (token) => {
@@ -119,10 +148,25 @@ export const GetSeriesPrivates = async (token) => {
     }
 };
 
+export const GetComments = async (chapNum,idSerie) => {
+    const res = await instance2.post('/getSerieComments', {
+        chapNum: chapNum,
+        serieId: idSerie
+    });     
+    console.log("soy el response de login ", res.data)
+    return res;
+}
+
 export const GetSeries = async () => {
     const res = await instance2.get('/getSeries');
     console.log("soy el response de series ", res.data)
     return res;
+}
+
+export const GetNoteChapter = async (serieId) => {
+    const rest = await instance2.get('/notes/'+serieId)
+    console.log("soy el response de series ", rest.data)
+    return rest;
 }
 
 export const GetNumOfChapters = async (idSerie) => {
@@ -139,9 +183,10 @@ export const GetChapter = async (idSerie,chaptNum) => {
 
 }
 
-export const TraductionYAudio = async (input,sourceLang,voiceLang) => {
+export const TraductionYAudio = async (input,outLang,sourceLang,voiceLang) => {
     const res = await instance2.post('/translate', {
         input: input,
+        outLang: outLang,
         sourceLang: sourceLang,
         voiceLang: voiceLang
     });
